@@ -1,0 +1,49 @@
+---
+title: "Basic_eQTL_Analysis_Guide"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##loading data
+
+```{r}
+library(readr)
+library(tidyr)
+library(dplyr)
+
+snps = read_tsv("~/Documents/Postdoc_Projects/First_Project/eQTL_Stroke_011519_Input_Output/Input/MatrixEQTL/data/SNP.txt")
+expr = read_tsv("~/Documents/Postdoc_Projects/First_Project/eQTL_Stroke_011519_Input_Output/Input/MatrixEQTL/data/GE.txt")
+
+```
+
+```{r}
+paste("Mean value of expression for gene ",expr$geneid[1:10]," is ", rowMeans(expr[1:10, -1]))
+paste("Standard deviation of expression for gene ", expr$geneid[1:10]," is ", t(apply(expr[1:10, -1], 1, sd)))
+```
+```{r}
+paste("Mean value for SNP ",snps$snpid[1:15]," is ", rowMeans(snps[1:15, -1]))
+paste("Standard deviation of expression for SNP ", " is ", t(apply(snps[1:15, -1], 1, sd)))
+
+```
+##The term MAF implies that the allele for which we return the measure has to be the minor (= less common) allele. This means that the MAF is smaller than 0.5 by definition.So let’s now calculate the MAF for all SNPs among all individuals and correct the returned values so that the value is always given in respect to the minor allele. Then we’ll plot a histogram of the MAFs of all SNPs
+
+```{r}
+library(MASS)
+```
+
+```{r}
+maf = rowMeans(snps[-1])/2
+sum(maf > 0.5) # so there are 7 alleses which are actually major alleles in this population sample
+```
+```{r}
+# To ensure we actually get the MAF this needs to be inverted.
+maf <- pmin(maf, 1-maf)
+
+truehist(maf, main = "Histogram of MAF values.", col = "steelblue")
+lines(density(maf), lty = 2, col = "darkorange", lwd = 3)
+
+```
+
