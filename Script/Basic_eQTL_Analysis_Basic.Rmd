@@ -46,4 +46,171 @@ truehist(maf, main = "Histogram of MAF values.", col = "steelblue")
 lines(density(maf), lty = 2, col = "darkorange", lwd = 3)
 
 ```
+##Filtering SNPs by MAF: In an eQTL study often a minimum MAF is required. Since MAF essentially reflects how often an allele has been observed in a population, it also defines how often the gene expression levels have been observed for heterozygous and homozygous alleles. We need to know what useful MAF thresholds are for SNPs to include in an eQTL analysis.
+
+```{r}
+#here the e.g for MAF of 5%, 10% and 15% in a sample of 500 individuals 
+p = c(0.05, 0.1, 0.15)
+q = 1-p
+# Calulate frequency of minor allele being present in homozygous and heterozygous state
+f_hom = p^2
+f_het = 2*p*q
+# Expected number of observations in a sample size of 500
+sample_size = 500
+round(f_hom * sample_size)
+round(f_het * sample_size)
+
+```
+#Now that we have an idea of what is stored in the genotype data frame let’s take a look at the expression data. For eQTL analyses it is important for the gene expression to be normally distributed among samples, therefore RNA-seq data has to be transformed by, for example quantile normalization. Let’s check the distribution of gene expression levels across samples for the first gene in our expr data frame.'
+
+```{r}
+gname = expr$geneid[1]
+gname
+truehist(as.numeric(filter(expr, geneid == gname)[-1]), main = paste("Gene expression profile for gene:",gname), xlab = "Expression level", col = "darkorange") 
+# same as truehist(as.numeric(expr[1,-1]))
+lines(density(as.numeric(filter(expr, geneid == gname)[-1])), lty = 2, col = "steelblue", lwd = 3)
+```
+
+##Now we’ll plot the expression levels of the first gene against the first SNP, 10th gene against the 10th SNP, 10th gene against the 1th SNP, as well as the 10th gene against the 6th SNP, depending on the genotypes of the samples by using simple dot plots. We’ll add a bit of random noise (jitter) to the genotype data to make it all look more comprehensible.
+
+```{r}
+genotype = c("snp_1", "snp_10", "snp_1", "snp_6")
+genes = c("gene_1", "gene_10", "gene_10", "gene_10")
+par(mfrow=c(1,length(genotype)))
+
+plot(jitter(as.numeric(snps[1,-1]), factor = 0.5), as.numeric(expr[1,-1]),
+     xlab = genotype[1], ylab = genes[1], col = "steelblue",
+     main = paste(genes[1], "vs", genotype[1]), xlim= c(-0.5,2.5), xaxt="n")
+axis(1, at =c (0,1,2), labels = c("0", "1", "2"))
+plot(jitter(as.numeric(snps[10,-1]), factor = 0.5), as.numeric(expr[10,-1]),
+     xlab = genotype[2], ylab = genes[2], col = "steelblue",
+     main = paste(genes[2], "vs", genotype[2]), xlim= c(-0.5,2.5), xaxt="n")
+axis(1, at =c (0,1,2), labels = c("0", "1", "2"))
+plot(jitter(as.numeric(snps[1,-1]), factor = 0.5), as.numeric(expr[10,-1]),
+     xlab = genotype[3], ylab = genes[3], col = "steelblue",
+     main = paste(genes[3], "vs", genotype[3]), xlim= c(-0.5,2.5), xaxt="n")
+axis(1, at =c (0,1,2), labels = c("0", "1", "2"))
+plot(jitter(as.numeric(snps[6,-1]), factor = 0.5), as.numeric(expr[10,-1]),
+     xlab = genotype[4], ylab = genes[4], col = "steelblue",
+     main = paste(genes[4], "vs", genotype[4]), xlim= c(-0.5,2.5), xaxt="n")
+axis(1, at =c (0,1,2), labels = c("0", "1", "2"))
+
+```
+##Let’s do a bit of data wrangling for easier downstream analysis and efficient plotting. Namely we’ll transpose our data frames so that we have variables, i.e. SNPs and expression levels as columns and samples as rows.
+
+```{r}
+expr_trans = data.frame(t(expr[, -1]))
+colnames(expr_trans)=t(expr[, 1])
+expr_trans = tibble::rownames_to_column(expr_trans, "sample")
+head(expr_trans)[1:10]
+```
+### and the same for genotype data
+
+```{r}
+snps_trans <- data.frame(t(snps[,-1]))
+colnames(snps_trans) <- t(snps[,1])
+snps_trans <- tibble::rownames_to_column(snps_trans, "sample") #consider samples as a column for rowname lable
+head(snps_trans)[1:10]
+```
+##Another convenient way to display gene expression values by genotype is as box plots. These provide a good, nonparametric, indication of the distributions. To convey a sense of the frequency of each genotype in the sample it is useful to also add points for each individual to the plot. Below is an example of how this might look for first ten SNP/gene pairs. This time we’ll use R’s ggplot2 library to generate visualization.
+
+```{r}
+library(ggplot2)
+
+#Reshape dataframes a bit for use with ggplot2, remeber this function
+snps_long = tidyr::gather(snps_trans[, 1:5], snp, genotype, -sample)
+expr_long = tidyr::gather(expr_trans[, 1:5], gene, expression, -sample)
+head(snps_long)
+```
+
+```{r}
+data_long <- cbind(snps_long, expr_long["expression"])
+data_long$genotype <- as.factor(data_long$genotype)
+head(data_long)
+```
+
+```{r}
+ggplot(data_long, aes(genotype, expression)) +
+  geom_jitter(colour = "darkorange",alpha = 0.3, width = 0.02) +
+  geom_boxplot(alpha = 0.5, fill = "steelblue") +
+  facet_wrap(~snp) 
+```
+### Let's do that for more SNPs and genes, just to see whether we could catch any visible correlations
+
+```{r}
+snps_long = tidyr::gather(snps_trans[, 1:10], snp, genotype, -sample)
+expr_long = tidyr::gather(expr_trans[, 1:10], gene, expression, -sample)
+head(snps_long)
+data_long <- cbind(snps_long, expr_long["expression"])
+data_long$genotype <- as.factor(data_long$genotype)
+head(data_long)
+ggplot(data_long, aes(genotype, expression)) +
+  geom_jitter(colour = "darkorange",alpha = 0.3, width = 0.02) +
+  geom_boxplot(alpha = 0.5, fill = "steelblue", 
+               position = position_dodge(width = 0)) +
+  facet_wrap(~snp) 
+```
+##Understanding the basics, This script explain the basic ideas behind eQTL analyses and how eQTL mapping works in general.
+##Linear regression of genotype on phenotype:The most common way of estimating the effect of a SNP on gene expression is by performing a linear regression of sample genotypes on sample gene expression levels. So to obtain estimates of the genotypic contribution to gene expression we fit a simple linear regression model of the form Ei=β0+βGi+ϵ, where Ei is the vector of gene expression values for gene i and Gi is the genotype vector for the SNPi. We are interested in the estimate for β which indicates the change in gene expression for each copy of the second allele. The p-value indicates the significance of the genetic component in the model. Let’s try that for gene 10 with SNP 1 and SNP 6.
+
+```{r}
+#Gene 10 with SNP 1
+lm_1_10 = lm(expr_trans[, 11] ~ snps_trans[, 2]) #don’t catch any significant effect of explored SNPs and gene expression levels. NO eQTL
+summary(lm_1_10)
+#                   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)     13.3225806  0.4941457  26.961 1.82e-13 ***
+# snps_trans[, 2] -0.0009677  0.3206440  -0.003    0.998 
+```
+
+```{r}
+#Gene 10 with SNP 6
+lm_6_10 = lm(expr_trans[, 11] ~ snps_trans[, 7]) #don’t catch any significant effect of explored SNPs and gene expression levels. NO eQTL
+summary(lm_6_10)
+#                 Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)      13.2021     0.4261  30.982 2.67e-14 ***
+# snps_trans[, 7]   0.1003     0.3061   0.328    0.748  
+```
+```{r}
+gt = read_tsv("~/Documents/Postdoc_Projects/First_Project/eQTL_Stroke_011519_Input_Output/Input/MatrixEQTL/data/SNP.txt")
+gt_trans <- data.frame(t(gt[,-1]))
+colnames(gt_trans) <- t(gt[,1])
+gt_trans <- tibble::rownames_to_column(gt_trans, "sample") #consider samples as a column for rowname lable
+head(snps_trans)[1:10]
+snps = c("Snp_01", "Snp_10", "Snp_01")
+genes = c("Gene_01", "Gene_10", "Gene_10")
+par(mfrow=c(1,length(snps)))
+
+for (index in seq(length(snps))){
+  genotype = gt_trans[[snps[index]]]
+  expression = expr_trans[[genes[index]]]
+  lm_result = lm(expression ~ genotype)
+  plot(jitter(genotype, factor = 0.4), expression,
+  main=paste(snps[index], "vs", genes[index]), xlim= c(-0.5,2.5),
+  xlab = "genotype", xaxt="n", col ="steelblue")
+  abline(lm_result, col="darkorange")
+  axis(1, at=c(0,1,2), labels = c("0", "1", "2"))
+  # Add p-values as text
+  y_range = range(expression)
+  text(x=1, y=y_range[1] + 0.95*diff(y_range), paste0("p=",
+  format(summary(lm_result)$coefficients[2,4],
+  scentific=TRUE, digits=2)))
+  }
+```
+```{r}
+#with ggplot
+
+genoLong = tidyr::gather(gt_trans, snp, genotype, Snp_01, Snp_10) #just for these two snps we want to have column seperately
+exprLong = tidyr::gather(expr_trans, gene, expression, Gene_01, Gene_10)
+dataLong = cbind(genoLong[,c("snp", "genotype")], exprLong[,c("gene", "expression")])
+dataLong$comparison = paste(dataLong$snp, "vs", dataLong$gene)
+dataLong$genotype = factor(dataLong$genotype)
+
+ggplot(dataLong, aes(genotype, expression)) +
+    geom_jitter(col="darkorange", position=position_jitter(width=0.25)) +
+    geom_boxplot(outlier.size=0, alpha=0.6, fill="steelblue") +
+    geom_smooth(method = 'lm',col="darkred", aes(group=1), se=FALSE) +
+    facet_wrap(~comparison) 
+
+```
+
 
