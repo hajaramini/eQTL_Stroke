@@ -1,0 +1,54 @@
+---
+title: "Data_Preprocessing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#create SNP.txt file
+#sort the AxiomGT1.calls_v2.csv for individual's name, try with smaller names.
+
+setwd("C:/eQTL/R_eQTL_Stroke/eQTL_Stroke")
+AxiomGT1.calls_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/AxiomGT1.calls_v2.csv", row.names = 1)
+dim(AxiomGT1.calls_v2) #628679    351
+library("dplyr")
+AxiomGT1.calls_v2_sort <- AxiomGT1.calls_v2 %>% 
+    select(sort(names(.)))
+dim(AxiomGT1.calls_v2_sort) #628679    351
+write.csv(AxiomGT1.calls_v2_sort, file = "../Input_Output/SNP.txt",col.names = F, sep = "\t")
+
+```
+
+```{r}
+#create SNP_Location file
+Axiom_BioBank1.na35.annot_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/Axiom_BioBank1.na35.annot_v2.csv", row.names=1)
+dim(Axiom_BioBank1.na35.annot_v2) # 718212     29
+#subsetting the annotation file, to have only 628679 SNP data
+Axiom_BioBank1.na35.annot_v2_small <- Axiom_BioBank1.na35.annot_v2[rownames(AxiomGT1.calls_v2_sort), ]
+dim(Axiom_BioBank1.na35.annot_v2_small) #628679     29
+Axiom_BioBank1.na35.annot_v2_small_v2 <- Axiom_BioBank1.na35.annot_v2_small[,c(4,5)] #dim 628679      2
+write.csv(Axiom_BioBank1.na35.annot_v2_small_v2, file = "../../Input_Output/SNP_Location.txt",col.names = F, sep = "\t")
+
+```
+
+```{r}
+#create GE.txt and Gene_Location.txt files
+gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA-GENE-FULL - Group 1.TXT", row.names=1)
+
+colnames(gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1) <- sub(x = colnames(gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1), pattern = "_HTA*.*", replacement ="") #remove colnames's tail #dim 351
+#sort based on colnames
+gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort <- gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1 %>% 
+    select(sort(names(.)))
+dim(gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort) #70523   364
+gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small <- gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort[,-c(1,3,4,5,6,7,8,11,12,13)] #Subet start and end with chr dim 70523     354
+GE<- gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small[,c(-1,-2,-3)] # 70523   351
+Gene_Location <- gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small[,c(1,2,3)]
+write.csv(gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small, file = "../../Input_Output/GE_Location.txt",col.names = F, sep = "\t")
+write.csv(GE, file = "../../Input_Output/GE.txt",col.names = F, sep = "\t")
+write.csv(Gene_Location, file = "../../Input_Output/Gene_Location.txt",col.names = F, sep = "\t")
+
+```
+
