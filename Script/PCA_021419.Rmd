@@ -1,0 +1,60 @@
+---
+title: "PCA_021419"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Calculation of PC value for genotyping data (SNP data) to make a covariates file
+
+```{r}
+# #install the package
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("snpStats", version = "3.8")
+# library("snpStats")
+# require(snpStats) #Do not use this package
+```
+
+```{r}
+#example
+# data(for.exercise)
+# controls <- rownames(subject.support)[subject.support$cc==0]
+# use <- seq(1, ncol(snps.10), 10)
+# ctl.10 <- snps.10[controls,use]
+```
+
+```{r}
+SNP_Sample <- AxiomGT1.calls_v2_sort
+colnames(SNP_Sample) %>% length() #351
+rownames(SNP_Sample)
+as.data.frame(SNP_Sample)
+```
+
+```{r}
+#calculate PCA
+PCA <- prcomp(SNP_Sample)
+
+```
+
+```{r}
+install.packages("devtools")
+library("devtools")
+install_github("kassambara/factoextra")
+```
+```{r}
+library("factoextra")
+
+```
+
+```{r}
+# Extract the results for variables and individuals
+get_pca(PCA, element = c("var", "ind"))
+# Extract the results for individuals only
+get_pca_ind(PCA,...)
+# Extract the results for variables only
+var <- get_pca_var(PCA)
+```
+
