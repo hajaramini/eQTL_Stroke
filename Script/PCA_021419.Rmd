@@ -55,6 +55,7 @@ var <- get_pca_var(PCA)
 #calculate PCA
 #using PLINK, Eigensoft(smartPCA), and Partek
 #create covariates matrix with first three PCs from PLINK
+#the file names is "SNP_PC1_PC2_Pc3_plink"
 
 ```
 
