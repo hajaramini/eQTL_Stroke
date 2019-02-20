@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#step 1 : Data Pre-processing to make a five matrix for finding eQTL related to expression after stroke
+
 ```{r}
 #create SNP.txt file
 #sort the AxiomGT1.calls_v2.csv for individual's name, try with smaller names.
@@ -50,5 +52,8 @@ write.csv(gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small,
 write.csv(GE, file = "../../Input_Output/GE.txt",col.names = F, sep = "\t")
 write.csv(Gene_Location, file = "../../Input_Output/Gene_Location.txt",col.names = F, sep = "\t")
 
+```
+```{r}
+#covariates file
 ```
 
