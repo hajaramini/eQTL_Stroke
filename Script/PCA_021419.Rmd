@@ -34,12 +34,6 @@ as.data.frame(SNP_Sample)
 ```
 
 ```{r}
-#calculate PCA
-PCA <- prcomp(SNP_Sample)
-
-```
-
-```{r}
 install.packages("devtools")
 library("devtools")
 install_github("kassambara/factoextra")
@@ -56,5 +50,11 @@ get_pca(PCA, element = c("var", "ind"))
 get_pca_ind(PCA,...)
 # Extract the results for variables only
 var <- get_pca_var(PCA)
+```
+```{r}
+#calculate PCA
+#using PLINK, Eigensoft(smartPCA), and Partek
+#create covariates matrix with first three PCs from PLINK
+
 ```
 
