@@ -54,6 +54,45 @@ write.csv(Gene_Location, file = "../../Input_Output/Gene_Location.txt",col.names
 
 ```
 ```{r}
-#covariates file
+#create covariates file
+#file names is "SNP_PC1_PC2_Pc3_plink"
+#first load primary covariates file
+
+COVARIATES <- read.delim("C:/eQTL/Primary_Files/COVARIATES.txt", header=FALSE, row.names=1)
+COVARIATES_t <- t(COVARIATES)
+dim(COVARIATES) #6 351
+dim(COVARIATES_t) #351 6
+#need to add colname for final_sample_list to merge name file with COVARIATES file
+final_sample_list <- read.csv("C:/eQTL/Primary_Files/final_sample_list.csv")
+dim(final_sample_list) #351 3
+merge <- merge(COVARIATES_t, final_sample_list, by = "id", all.x = TRUE, sort =TRUE) #now I get name for each id in COVARIATES file
+dim(merge) #351 8
+write.csv(merge, file = "../../Input_Output/Covariates_Merge.txt",col.names = F)
+merge_v2 <- merge[,c(7,2,3,4,5,6)]
+dim(merge_v2) #351 6
+#sort based in the fisrt colname (name)
+merge_v2_sort <- merge_v2[order( merge_v2[,1] ),]
+write.table(merge_v2_sort, file = "../../Input_Output/Covariates_Merge_v2_sort.txt",col.names = F,sep = "\t")
+```
+
+```{r}
+#add first three PCs into Covariates_Merge.txt file
+SNP_PC1_PC2_PC3_Plink_v2 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_PC1_PC2_PC3_Plink_v2.txt", header=FALSE)
+dim(SNP_PC1_PC2_PC3_Plink_v2) #352 4
+
+```
+
+```{r}
+#combine the SNP_PC1_PC2_PC3_Plink_v2 and merge_v2_sort files
+#import Covariates_Final.txt as a covariates matrix including first three PCs
+Covariates_Final <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final.txt", row.names=1)
+dim(Covariates_Final) #351 8 
+```
+
+```{r}
+#Since the linear regression model used by Matrix eQTL is built on a set of assumptions about the data generation process and is susceptible to violations of these assumptions. The important assumptions are:
+
+Normal distribution of the errors. Lack of outliers.
+Errors are uncorrelated and have the same variance
 ```
 
