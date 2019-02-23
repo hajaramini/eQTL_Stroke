@@ -10,38 +10,50 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 #start with installing MatrixEQTL "http://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html"
 #install.packages("MatrixEQTL")
+# if(!requireNamespace("devtools", quietly = TRUE))
+#     install.packages("devtools")
+##Error in saver.cis$getResults(gene, snps, n.tests.cis) : 
+#unused arguments (gene, snps, n.tests.cis), we sould use github version NOT CRAN
+# devtools::install_github("andreyshabalin/MatrixEQTL")
 #library("MatrixEQTL")
-base.dir <- ("C:/eQTL/R_eQTL_Stroke/eQTL_Stroke")
+base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
 #set the parameters such as linearcross model and names of the genotype and expression data files
 # based on this doc, "http://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/html/Matrix_eQTL_main.html"
 #Set useModel = modelLINEAR_CROSS to add a new term to the modelequal to the product of genotype and the last covariate; the significance of this term is then tested using t-statistic.
-useModel = modelLINEAR_CROSS # modelANOVA or modelLINEAR or modelLINEAR_CROSS 
+useModel = modelLINEAR_CROSS # modelANOVA or modelLINEAR or modelLINEAR_CROSS
+# Set parameter useModel = modelLINEAR_CROSS in the call of Matrix_eQTL_main to indicate that
+# Matrix eQTL should include the interaction of SNP and the last covariate in the model and test for
+# its significance
 SNP_file_name = paste(base.dir, "/Input_Output/SNP.txt", sep="")
 expression_file_name = paste(base.dir, "/Input_Output/GE.txt", sep="") 
-covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="") #need sample as colnames
 gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
 snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location.txt", sep="")
+```
+
+```{r}
 output_file_name_cis = tempfile()
-output_file_name_tra = tempfile()
+output_file_name_trans = tempfile()
 ```
 
 ```{r}
 #The p-value threshold determines which gene-SNP associations are saved in the output file output_file_name. Note that for larger datasets the threshold should be lower. Setting the threshold to a high value for a large dataset may cause excessively large output files.
 #pvOutputThreshold_cis = 2e-2 #defualt
 #pvOutputThreshold_tras = 1e-2 #defualt
-pvOutputThreshold_cis = 0
-pvOutputThreshold_trans = 1e-20 #Only associations significant at this level will be saved. After talking with Brad decide to set as 1e-20
+pvOutputThreshold_cis = 1e-1
+#pvOutputThreshold_trans = 1e-20  #Only associations significant at this level will be saved. 
+pvOutputThreshold_trans = 1e-10
 ```
 
 ```{r}
 # Finally, define the covariance matrix for the error term. This parameter is rarely used. If the covariance matrix is a multiple of identity, set it to numeric().
-errorCovariance = numeric() #have to be sure about this?????
-
+errorCovariance = numeric() #since we do not have this file keep it empty()
 ```
 
 ```{r}
 # Distance for local gene-SNP pairs, numeric. SNP-gene pairs within this distance are considered local. The distance is measured from the nearest end of the gene. SNPs within a gene are always considered local.
 cisDist = 1e6 #for test
+#cisDist = 1e9 # we can try this
 ```
 
 ```{r}
@@ -52,10 +64,11 @@ snps$fileDelimiter = "\t"      # the TAB character
 snps$fileOmitCharacters = "NA" # denote missing values;
 snps$fileSkipRows = 1          # one row of column labels
 snps$fileSkipColumns = 1       # one column of row labels
-snps$fileSliceSize = 710000      # read file in slices of over 600000 rows
+snps$fileSliceSize = 2000    # read file in slices of 2,000 rows
 snps$LoadFile(SNP_file_name) #Number of columns: 351, Number of rows: 628679
-#SNP_Sample[SNP_Sample == -1] <- NA # -1 in our data is equal missing data
 
+
+#Rows read: 628679 done. This is correct, we have 628679 SNPs id
 ```
 
 ```{r}
@@ -65,8 +78,10 @@ gene$fileDelimiter = "\t"      # the TAB characte
 gene$fileOmitCharacters = "NA" # denote missing values;
 gene$fileSkipRows = 1          # one row of column labels
 gene$fileSkipColumns = 1       # one column of row labels
-gene$fileSliceSize = 710000      # read file in slices of 2,000 rows
-gene$LoadFile(expression_file_name) #Number of columns: 351, Number of rows: 70523 
+gene$fileSliceSize = 2000      # read file in slices of 2,000 rows
+gene$LoadFile(expression_file_name) #Number of columns: 351, Number of rows: 67528 
+
+#Rows read:  67528  done. This is correct, we have  70523-2995= 67528  genes
 ```
 
 ```{r}
@@ -79,13 +94,96 @@ cvrt$fileSkipColumns = 1      # one column of row labels
 if(length(covariates_file_name)>0) {
 cvrt$LoadFile(covariates_file_name)
 }
-```
-```{r}
-genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE);
-
+#Rows read: 8 done. correct
 ```
 
 ```{r}
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  67528     4
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3, there is any info in annotation file for these two AFFX-SNP-000541 and AFFX-SNP-002255, so removed them 
 
+#snpspos_after_filter <- snpspos[rownames(snps),] #only use #294089 SNPs after filtering outliers
+```
+
+```{r}
+#Since the linear regression model used by Matrix eQTL is built on a set of assumptions about the data generation process and is susceptible to violations of these assumptions. The important assumptions are:
+#Normal distribution of the errors. Lack of outliers.
+#Errors are uncorrelated and have the same variance.
+```
+
+```{r}
+#Outliers in genotype. Minor allele frequency filtering.
+#SNPs with low minor allele frequency are non-informative (experience too little variation) and have a great potential for creating spurious findings. It is a common practice to filter out such SNPs. It can be done within code running Matrix eQTL:
+
+maf.list = vector('list', length(snps))
+for(sl in 1:length(snps)) {
+  slice = snps[[sl]];
+  maf.list[[sl]] = rowMeans(slice,na.rm=TRUE)/2;
+  maf.list[[sl]] = pmin(maf.list[[sl]],1-maf.list[[sl]]);
+}
+maf = unlist(maf.list)
+length(maf) #628679
+## Look at the distribution of MAF
+# hist(maf[maf<0.1])
+cat('SNPs before filtering:',nrow(snps)) #SNPs before filtering: 628679
+# snps$RowReorderSimple(maf>0.05);
+snps$RowReorder(maf>0.05);
+cat('SNPs after filtering:',nrow(snps)) #SNPs after filtering: 294089
+#now the dim snps 294089    351 the number of outliers are close to what smartpca and plink removed
+```
+
+```{r}
+# Outliers in expression. Quantile normalization and Kruskal-Wallis test.
+# Outliers in expression data are usually harder to deal with. The accepted remedy by the GTEx consortium is the transformation of the measurements for each gene into normally distributed while preserving relative rankings. The target distribution may be the standard normal distribution or the normal distribution the mean and spread of the original measurements. Here is the code for such transformation:
+
+for( sl in 1:length(gene) ) {
+  mat = gene[[sl]];
+  mat = t(apply(mat, 1, rank, ties.method = "average"));
+  mat = qnorm(mat / (ncol(gene)+1));
+  gene[[sl]] = mat;
+}
+rm(sl, mat);
+
+#normalize gene expression
+
+#A similar approach allows one to run Kruskal-Wallis tests external link with Matrix eQTL. In this case one has to use the ANOVA model (useModel = modelANOVA) and transform the measurements for each gene into their respective ranks.
+# 
+# for( sl in 1:length(gene) ) {
+#   mat = gene[[sl]];
+#   mat = t(apply(mat, 1, rank, ties.method = "average"));
+#   gene[[sl]] = mat;
+# }
+# rm(sl, mat); For now do not run this code
+```
+
+
+```{r}
+#save data
+save(snps,gene,cvrt, file = "../../Input_Output/snps_gene_cvrt_final.Rdata") #These versions are final versions of input files (AFTER FILTERING AND NORMALIZATION)
+save(snpspos,genepos, file = "../../Input_Output/snpspos_genepos_final.Rdata")
+```
+
+
+```{r}
+#Finally, the main Matrix eQTL function is called:
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_trans,
+pvOutputThreshold = pvOutputThreshold_trans,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, #logical. Set to TRUE to display more detailed report about the progress
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = pvOutputThreshold_cis,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
+min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
+noFDRsaveMemory = TRUE); #logical. Set noFDRsaveMemory = TRUE to save significant gene-SNP pairs directly to the output files, reduce memory footprint and skip FDR calculation. The eQTLs are not recorded in the returned object if noFDRsaveMemory = TRUE.
+
+#got this error: Error: cannot allocate vector of size 148.0 Gb if noFDRsaveMemory = FALSE) #because of slicesize set to more thatn 2000
+#Error in saver.cis$getResults(gene, snps, n.tests.cis) : unused arguments (gene, snps, n.tests.cis) #becuase of CRAN version of this library
 ```
 

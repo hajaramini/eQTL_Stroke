@@ -20,21 +20,25 @@ library("dplyr")
 AxiomGT1.calls_v2_sort <- AxiomGT1.calls_v2 %>% 
     select(sort(names(.)))
 dim(AxiomGT1.calls_v2_sort) #628679    351
-write.csv(AxiomGT1.calls_v2_sort, file = "../Input_Output/SNP.txt",col.names = F, sep = "\t")
-
+AxiomGT1.calls_v2_sort[AxiomGT1.calls_v2_sort == -1] <- NA # -1 in our data is equal missing data
+save(AxiomGT1.calls_v2_sort, file = "../../Input_Output/AxiomGT1.calls_v2_sort.Rdata")
+write.table(AxiomGT1.calls_v2_sort, file = "../../Input_Output/SNP.txt",col.names = T, sep = "\t")
 ```
 
 ```{r}
 #create SNP_Location file
-Axiom_BioBank1.na35.annot_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/Axiom_BioBank1.na35.annot_v2.csv", row.names=1)
+Axiom_BioBank1.na35.annot_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/Axiom_BioBank1.na35.annot_v2.csv", row.names = 1)
 dim(Axiom_BioBank1.na35.annot_v2) # 718212     29
 #subsetting the annotation file, to have only 628679 SNP data
 Axiom_BioBank1.na35.annot_v2_small <- Axiom_BioBank1.na35.annot_v2[rownames(AxiomGT1.calls_v2_sort), ]
 dim(Axiom_BioBank1.na35.annot_v2_small) #628679     29
 Axiom_BioBank1.na35.annot_v2_small_v2 <- Axiom_BioBank1.na35.annot_v2_small[,c(4,5)] #dim 628679      2
-write.csv(Axiom_BioBank1.na35.annot_v2_small_v2, file = "../../Input_Output/SNP_Location.txt",col.names = F, sep = "\t")
-
+library(dplyr)
+df <- add_rownames(Axiom_BioBank1.na35.annot_v2_small_v2,"snpis") # convert rownames to first colname dim 628679 3
+save(df,file = "../../Input_Output/SNP_Location.Rdata")
+write.table(df, file = "../../Input_Output/SNP_Location.txt",col.names =  T , sep = "\t")
 ```
+
 
 ```{r}
 #create GE.txt and Gene_Location.txt files
@@ -49,10 +53,10 @@ gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small <- gene_ex
 GE<- gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small[,c(-1,-2,-3)] # 70523   351
 Gene_Location <- gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small[,c(1,2,3)]
 write.csv(gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1_sort_small, file = "../../Input_Output/GE_Location.txt",col.names = F, sep = "\t")
-write.csv(GE, file = "../../Input_Output/GE.txt",col.names = F, sep = "\t")
-write.csv(Gene_Location, file = "../../Input_Output/Gene_Location.txt",col.names = F, sep = "\t")
-
+write.table(GE, file = "../../Input_Output/GE.txt",col.names = T, sep = "\t") #removing 2995 genes, these genes are control genes.
+write.table(Gene_Location, file = "../../Input_Output/Gene_Location.txt",col.names =T, sep = "\t")
 ```
+
 ```{r}
 #create covariates file
 #file names is "SNP_PC1_PC2_Pc3_plink"
@@ -87,12 +91,5 @@ dim(SNP_PC1_PC2_PC3_Plink_v2) #352 4
 #import Covariates_Final.txt as a covariates matrix including first three PCs
 Covariates_Final <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final.txt", row.names=1)
 dim(Covariates_Final) #351 8 
-```
-
-```{r}
-#Since the linear regression model used by Matrix eQTL is built on a set of assumptions about the data generation process and is susceptible to violations of these assumptions. The important assumptions are:
-
-Normal distribution of the errors. Lack of outliers.
-Errors are uncorrelated and have the same variance
 ```
 
