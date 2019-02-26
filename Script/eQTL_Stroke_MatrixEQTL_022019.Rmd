@@ -22,14 +22,35 @@ base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
 #Set useModel = modelLINEAR_CROSS to add a new term to the modelequal to the product of genotype and the last covariate; the significance of this term is then tested using t-statistic.
 useModel = modelLINEAR_CROSS # modelANOVA or modelLINEAR or modelLINEAR_CROSS
 # Set parameter useModel = modelLINEAR_CROSS in the call of Matrix_eQTL_main to indicate that
-# Matrix eQTL should include the interaction of SNP and the last covariate in the model and test for
-# its significance
-SNP_file_name = paste(base.dir, "/Input_Output/SNP.txt", sep="")
+# Matrix eQTL should include the interaction of SNP and the last covariate in the model and test for its significance
+```
+
+```{r}
+#Outlier in genotype. call rate (CR), MAF & H.W.p.value
+SNP_calls_351_table <- read.delim("C:/eQTL/SNP/SNP_calls_351_eQTL/SNP_calls_351_table.txt", row.names = 1) #628679 31, including MAF, CR, HW and SNP id for each SNPs
+#colnames(SNP_calls_351_table)
+#library("dplyr")
+#SNP_calls_351_table_filter <- SNP_calls_351_table[SNP_calls_351_table$CR >= 99 & SNP_calls_351_table$MinorAlleleFrequency > 0.05 & SNP_calls_351_table$H.W.p.Value > 0.0001,] #I do not think we need to filter based on H.W 
+
+SNP_calls_351_table_filter <- SNP_calls_351_table[SNP_calls_351_table$CR > 99 & SNP_calls_351_table$MinorAlleleFrequency > 0.05,] #256100 30 for MAF > 0.05, # 307262 MAF > 0.01, # 335172 CR > 95 & MAF > 0.01
+SNP_calls_351_table_filter_id <- row.names(SNP_calls_351_table_filter) 
+write.table(SNP_calls_351_table_filter_id, file = "../../Input_Output/SNP_calls_351_table_filter_id", col.names = T, sep = "\t")
+#subset snps id after filtering from SNP.txt file
+SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names = 1)
+SNP_after_filter <- SNP[SNP_calls_351_table_filter_id,] 
+write.table(SNP_after_filter, file = "../../Input_Output/SNP_CRmore99_MAFmore0.05.txt", col.names = T, sep = "\t")
+```
+
+```{r}
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore99_MAFmore0.05.txt", sep="")
+#SNP_file_name = paste(base.dir, "/Input_Output/SNP.txt", sep="")
 expression_file_name = paste(base.dir, "/Input_Output/GE.txt", sep="") 
-covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="") #need sample as colnames
+#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="") #need sample as colnames
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
 gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
 snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location.txt", sep="")
 ```
+
 
 ```{r}
 output_file_name_cis = tempfile()
@@ -52,7 +73,7 @@ errorCovariance = numeric() #since we do not have this file keep it empty()
 
 ```{r}
 # Distance for local gene-SNP pairs, numeric. SNP-gene pairs within this distance are considered local. The distance is measured from the nearest end of the gene. SNPs within a gene are always considered local.
-cisDist = 1e6 #for test
+cisDist = 1e6 #keep this as a cis out of this distance conder as a trans
 #cisDist = 1e9 # we can try this
 ```
 
@@ -99,7 +120,7 @@ cvrt$LoadFile(covariates_file_name)
 
 ```{r}
 genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  67528     4
-snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3, there is any info in annotation file for these two AFFX-SNP-000541 and AFFX-SNP-002255, so removed them 
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3, there is any info in annotation file for these two AFFX-SNP-000541 and AFFX-SNP-002255 in Axiom_BioBank1.na35.annot_v2 files, so removed them 
 
 #snpspos_after_filter <- snpspos[rownames(snps),] #only use #294089 SNPs after filtering outliers
 ```
@@ -131,6 +152,7 @@ cat('SNPs after filtering:',nrow(snps)) #SNPs after filtering: 294089
 #now the dim snps 294089    351 the number of outliers are close to what smartpca and plink removed
 ```
 
+
 ```{r}
 # Outliers in expression. Quantile normalization and Kruskal-Wallis test.
 # Outliers in expression data are usually harder to deal with. The accepted remedy by the GTEx consortium is the transformation of the measurements for each gene into normally distributed while preserving relative rankings. The target distribution may be the standard normal distribution or the normal distribution the mean and spread of the original measurements. Here is the code for such transformation:
@@ -158,14 +180,14 @@ rm(sl, mat);
 
 ```{r}
 #save data
-save(snps,gene,cvrt, file = "../../Input_Output/snps_gene_cvrt_final.Rdata") #These versions are final versions of input files (AFTER FILTERING AND NORMALIZATION)
+save(snps,gene,cvrt, file = "../../Input_Output/snps.MAFmore0.05&CRmore99_gene_cvrt.no.PC_final.Rdata") #These versions are final versions of input files (AFTER FILTERING AND NORMALIZATION)
 save(snpspos,genepos, file = "../../Input_Output/snpspos_genepos_final.Rdata")
 ```
 
 
 ```{r}
 #Finally, the main Matrix eQTL function is called:
-eQTL = Matrix_eQTL_main(
+eQTL_try1 = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
 cvrt = cvrt,
@@ -181,9 +203,48 @@ genepos = genepos,
 cisDist = cisDist,
 pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
 min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
-noFDRsaveMemory = TRUE); #logical. Set noFDRsaveMemory = TRUE to save significant gene-SNP pairs directly to the output files, reduce memory footprint and skip FDR calculation. The eQTLs are not recorded in the returned object if noFDRsaveMemory = TRUE.
+noFDRsaveMemory = FALSE); #logical. Set noFDRsaveMemory = TRUE to save significant gene-SNP pairs directly to the output files, reduce memory footprint and skip FDR calculation. The eQTLs are not recorded in the returned object if noFDRsaveMemory = TRUE.
 
 #got this error: Error: cannot allocate vector of size 148.0 Gb if noFDRsaveMemory = FALSE) #because of slicesize set to more thatn 2000
 #Error in saver.cis$getResults(gene, snps, n.tests.cis) : unused arguments (gene, snps, n.tests.cis) #becuase of CRAN version of this library
 ```
+
+```{r}
+unlink(output_file_name_trans)
+unlink(output_file_name_cis)
+```
+
+```{r}
+## Results for MAF > 0.05, CR >99% (No significant associations were found.):
+
+cat('Analysis done in: ', eQTL_try1$time.in.sec, ' seconds', '\n') #Analysis done in:  1087.04  seconds 
+cat('Detected local eQTLs:', '\n');
+show(eQTL_try1$cis$eqtls)
+cat('Detected distant eQTLs:', '\n');
+show(eQTL_try1$trans$eqtls)
+#       snps            gene statistic       pvalue       FDR       beta
+# 1 AX-11262710 TC14002163.hg.1  6.965680 1.676527e-11 0.2899372  0.3235115
+# 2 AX-40778059 TC20001020.hg.1 -6.833977 3.783782e-11 0.3271821 -0.4521873
+## Plot the Q-Q plot of local and distant p-values
+
+plot(me)
+```
+```{r}
+## Results for MAF > 0.01, CR >99% (No significant associations were found.):
+
+cat('Analysis done in: ', eQTL_try2$time.in.sec, ' seconds', '\n') #Analysis done in:  1247.23  seconds 
+cat('Detected local eQTLs:', '\n');
+show(eQTL_try2$cis$eqtls)
+cat('Detected distant eQTLs:', '\n');
+show(eQTL_try2$trans$eqtls)
+#         snps            gene statistic       pvalue       FDR       beta
+# 1 AX-11262710 TC14002163.hg.1  6.965680 1.676527e-11 0.3794566  0.3235115
+# 2 AX-40778059 TC20001020.hg.1 -6.833977 3.783782e-11 0.4282011 -0.4521873
+
+#result eQTL_trt3 for MAF > 0.01, CR >95% (No significant associations were found.):
+#       snps            gene statistic       pvalue       FDR       beta
+# 1 AX-11262710 TC14002163.hg.1  6.965680 1.676527e-11 0.3794566  0.3235115
+# 2 AX-40778059 TC20001020.hg.1 -6.833977 3.783782e-11 0.4282011 -0.4521873
+```
+
 

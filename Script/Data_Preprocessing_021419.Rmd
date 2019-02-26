@@ -25,6 +25,7 @@ save(AxiomGT1.calls_v2_sort, file = "../../Input_Output/AxiomGT1.calls_v2_sort.R
 write.table(AxiomGT1.calls_v2_sort, file = "../../Input_Output/SNP.txt",col.names = T, sep = "\t")
 ```
 
+
 ```{r}
 #create SNP_Location file
 Axiom_BioBank1.na35.annot_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/Axiom_BioBank1.na35.annot_v2.csv", row.names = 1)
