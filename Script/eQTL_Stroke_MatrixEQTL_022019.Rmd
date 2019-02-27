@@ -46,7 +46,8 @@ SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore99_MAFmore0.05.txt", se
 #SNP_file_name = paste(base.dir, "/Input_Output/SNP.txt", sep="")
 expression_file_name = paste(base.dir, "/Input_Output/GE.txt", sep="") 
 #covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="") #need sample as colnames
-covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
+#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_PCs_Partek.txt", sep="")
 gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
 snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location.txt", sep="")
 ```
@@ -61,9 +62,9 @@ output_file_name_trans = tempfile()
 #The p-value threshold determines which gene-SNP associations are saved in the output file output_file_name. Note that for larger datasets the threshold should be lower. Setting the threshold to a high value for a large dataset may cause excessively large output files.
 #pvOutputThreshold_cis = 2e-2 #defualt
 #pvOutputThreshold_tras = 1e-2 #defualt
-pvOutputThreshold_cis = 1e-1
+pvOutputThreshold_cis = 1e-5
 #pvOutputThreshold_trans = 1e-20  #Only associations significant at this level will be saved. 
-pvOutputThreshold_trans = 1e-10
+pvOutputThreshold_trans = 1e-20
 ```
 
 ```{r}
@@ -73,7 +74,7 @@ errorCovariance = numeric() #since we do not have this file keep it empty()
 
 ```{r}
 # Distance for local gene-SNP pairs, numeric. SNP-gene pairs within this distance are considered local. The distance is measured from the nearest end of the gene. SNPs within a gene are always considered local.
-cisDist = 1e6 #keep this as a cis out of this distance conder as a trans
+cisDist = 1e5 #keep this as a cis out of this distance conder as a trans
 #cisDist = 1e9 # we can try this
 ```
 
@@ -121,7 +122,9 @@ cvrt$LoadFile(covariates_file_name)
 ```{r}
 genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  67528     4
 snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3, there is any info in annotation file for these two AFFX-SNP-000541 and AFFX-SNP-002255 in Axiom_BioBank1.na35.annot_v2 files, so removed them 
-
+#snpspos.chr <- paste("chr",sep = "",snpspos$chr) #add chr first of each number of chr
+#write.table(snpspos.chr, file = "../../Input_Output/snpspos.chr.txt") 
+#cat snpspos.chr.txt | sed 's/ /\t/g' | cut -f2 | sed 's/"//g' > snpspos.chr.v2.txt #replace this snpspos.chr.txt with column in SNP_Location file to make this file identical to Gene_Location
 #snpspos_after_filter <- snpspos[rownames(snps),] #only use #294089 SNPs after filtering outliers
 ```
 
@@ -149,7 +152,7 @@ cat('SNPs before filtering:',nrow(snps)) #SNPs before filtering: 628679
 # snps$RowReorderSimple(maf>0.05);
 snps$RowReorder(maf>0.05);
 cat('SNPs after filtering:',nrow(snps)) #SNPs after filtering: 294089
-#now the dim snps 294089    351 the number of outliers are close to what smartpca and plink removed
+#now the dim snps  290234   351 the number of outliers are close to what smartpca and plink removed
 ```
 
 
@@ -187,7 +190,7 @@ save(snpspos,genepos, file = "../../Input_Output/snpspos_genepos_final.Rdata")
 
 ```{r}
 #Finally, the main Matrix eQTL function is called:
-eQTL_try1 = Matrix_eQTL_main(
+eQTL_try4 = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
 cvrt = cvrt,
@@ -215,36 +218,13 @@ unlink(output_file_name_cis)
 ```
 
 ```{r}
-## Results for MAF > 0.05, CR >99% (No significant associations were found.):
+## Results for MAF > 0.05:
 
-cat('Analysis done in: ', eQTL_try1$time.in.sec, ' seconds', '\n') #Analysis done in:  1087.04  seconds 
+cat('Analysis done in: ', eQTL_try$time.in.sec, ' seconds', '\n') 
 cat('Detected local eQTLs:', '\n');
-show(eQTL_try1$cis$eqtls)
+show(eQTL_try$cis$eqtls)
 cat('Detected distant eQTLs:', '\n');
-show(eQTL_try1$trans$eqtls)
-#       snps            gene statistic       pvalue       FDR       beta
-# 1 AX-11262710 TC14002163.hg.1  6.965680 1.676527e-11 0.2899372  0.3235115
-# 2 AX-40778059 TC20001020.hg.1 -6.833977 3.783782e-11 0.3271821 -0.4521873
-## Plot the Q-Q plot of local and distant p-values
-
-plot(me)
+show(eQTL_try$trans$eqtls)
+plot(eQTL_try)
 ```
-```{r}
-## Results for MAF > 0.01, CR >99% (No significant associations were found.):
-
-cat('Analysis done in: ', eQTL_try2$time.in.sec, ' seconds', '\n') #Analysis done in:  1247.23  seconds 
-cat('Detected local eQTLs:', '\n');
-show(eQTL_try2$cis$eqtls)
-cat('Detected distant eQTLs:', '\n');
-show(eQTL_try2$trans$eqtls)
-#         snps            gene statistic       pvalue       FDR       beta
-# 1 AX-11262710 TC14002163.hg.1  6.965680 1.676527e-11 0.3794566  0.3235115
-# 2 AX-40778059 TC20001020.hg.1 -6.833977 3.783782e-11 0.4282011 -0.4521873
-
-#result eQTL_trt3 for MAF > 0.01, CR >95% (No significant associations were found.):
-#       snps            gene statistic       pvalue       FDR       beta
-# 1 AX-11262710 TC14002163.hg.1  6.965680 1.676527e-11 0.3794566  0.3235115
-# 2 AX-40778059 TC20001020.hg.1 -6.833977 3.783782e-11 0.4282011 -0.4521873
-```
-
 

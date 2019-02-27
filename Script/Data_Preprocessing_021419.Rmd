@@ -94,3 +94,12 @@ Covariates_Final <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Fi
 dim(Covariates_Final) #351 8 
 ```
 
+```{r}
+#this library can order multiple column data frame based on specific column
+#install.packages("psych")
+# data <- read.table(file = "../../Input_Output/Gene_Location.txt")
+# library("psych")
+# data_order <- dfOrder(data,c(3))
+
+```
+
