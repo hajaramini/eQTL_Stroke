@@ -1,0 +1,149 @@
+---
+title: "eQTL_Stroke_MatrixEQTL_Two_Steps_030319"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Want to check the FDR with the method which is presented in Insight into Genotype-Phenotype Associations through eQTL Mapping in Multiple Cell Types in Health and Immun
+
+```{r}
+base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
+```
+
+```{r}
+#Outlier in genotype. call rate (CR), MAF & H.W.p.value
+SNP_calls_351_table <- read.delim("C:/eQTL/SNP/SNP_calls_351_eQTL/SNP_calls_351_table.txt", row.names = 1) #628679 31, including MAF, CR, HW and SNP id for each SNPs
+#filter based on other references
+SNP_calls_351_table_filter <- SNP_calls_351_table[SNP_calls_351_table$CR >= 95 & SNP_calls_351_table$MinorAlleleFrequency > 0.05 & SNP_calls_351_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #273688 30
+SNP_calls_351_table_filter_id <- row.names(SNP_calls_351_table_filter) 
+write.table(SNP_calls_351_table_filter_id, file = "../../Input_Output/SNP_calls_351_table_filter_id", col.names = T, sep = "\t")
+#subset snps id after filtering from SNP.txt file
+SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names = 1)
+SNP_after_filter <- SNP[SNP_calls_351_table_filter_id,] 
+write.table(SNP_after_filter, file = "../../Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", col.names = T, sep = "\t")
+```
+
+```{r}
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", sep="")
+#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="") #need sample as colnames
+#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location_Exclude_Weird_Position.txt", sep="")
+SNP_Location <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_Location.txt", row.names=1) #include all SNPs location
+SNP_location_filter <- SNP_Location[rownames(SNP_after_filter),] #273688 2
+write.table(SNP_location_filter, file = "../../Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", col.names = T, sep = "\t")
+snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", sep="") #remove two rows because of NA (no info from annotation file)
+#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype_No_Diagnosis.txt", sep="")
+```
+
+```{r}
+GE <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE.txt", row.names=1)
+GE <- GE[rownames(Gene_Location_Exclude_Weird_Position),] #65988
+write.table(GE, file = "../../Input_Output/GE_Exclude_Weird_Position.txt", sep = "\t")
+expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.txt", sep="") 
+```
+
+```{r}
+output_file_name_cis = tempfile()
+output_file_name_trans = tempfile()
+output_file_name = tempfile()
+```
+
+
+```{r}
+#The p-value threshold determines which gene-SNP associations are saved in the output file output_file_name. Note that for larger datasets the threshold should be lower. Setting the threshold to a high value for a large dataset may cause excessively large output files.
+#pvOutputThreshold_cis = 2e-2 #defualt
+#pvOutputThreshold_tras = 1e-2 #defualt
+pvOutputThreshold =  5e-05
+#pvOutputThreshold_trans = 1e-20  #Only associations significant at this level will be saved. 
+#pvOutputThreshold_trans = 1e-10
+```
+
+```{r}
+errorCovariance = numeric()
+```
+
+```{r}
+#cisDist = 1e6 #keep this value as a cis out of this distance conder as a trans
+```
+
+```{r}
+## Load genotype data
+snps = SlicedData$new() #SlicedData object with genotype information.
+snps$fileDelimiter = "\t"      # the TAB character
+snps$fileOmitCharacters = "NA" # denote missing values;
+snps$fileSkipRows = 1          # one row of column labels
+snps$fileSkipColumns = 1       # one column of row labels
+snps$fileSliceSize = 2000    # read file in slices of 2,000 rows
+snps$LoadFile(SNP_file_name) #Number of columns: 351, Number of rows: 273688 
+
+#Rows read:  273688  done. This is correct, we have  273688  SNPs id
+```
+
+```{r}
+# Load gene expression data
+gene = SlicedData$new(); #SlicedData object with gene expression information. Must have columns matching those of snps, create gene including row and column
+gene$fileDelimiter = "\t"      # the TAB characte
+gene$fileOmitCharacters = "NA" # denote missing values;
+gene$fileSkipRows = 1          # one row of column labels
+gene$fileSkipColumns = 1       # one column of row labels
+gene$fileSliceSize = 2000      # read file in slices of 2,000 rows
+gene$LoadFile(expression_file_name) #Number of columns: 351, Number of rows: 65988
+
+#Rows read: 65988 done. This is correct, we have 65988 genes
+```
+
+```{r}
+# Load covariates
+cvrt = SlicedData$new();
+cvrt$fileDelimiter = "\t"      # the TAB character
+cvrt$fileOmitCharacters = "NA" # denote missing values;
+cvrt$fileSkipRows = 1         # one row of column labels
+cvrt$fileSkipColumns = 1      # one column of row labels
+if(length(covariates_file_name)>0) {
+cvrt$LoadFile(covariates_file_name)
+}
+#Rows read: 4 done. correct
+```
+
+```{r}
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  65988   4
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 273686 3
+```
+
+```{r}
+#save
+save(snpspos,genepos, file = "../../Input_Output/snpspos_genepos_filter.Rdata")
+```
+
+```{r}
+#The first main Matrix eQTL function is called:
+useModel =  modelLINEAR # modelANOVA or modelLINEAR or modelLINEAR_CROSS
+# Set parameter useModel = modelLINEAR in the call of Matrix_eQTL_main to indicate that the effect of genotype on expression should be assumed to be additive linear.
+# SNP-gene pairs passing the step 1 threshold α1 were eligible for step 2 testing. We used a p-value of 5×10-5 for α1.
+# A more liberal α1 allows more SNP-gene pairs through to step 2, but at the price of more multiple testing and a more stringent threshold in step 2.
+eQTL_step1 = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, #logical. Set to TRUE to display more detailed report about the progress
+pvOutputThreshold = pvOutputThreshold,
+snpspos = snpspos, 
+genepos = genepos,
+pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
+min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
+noFDRsaveMemory = FALSE) 
+#got 1,731,587 eQTLs
+```
+
+```{r}
+#prepare input for step2
+
+```
+
