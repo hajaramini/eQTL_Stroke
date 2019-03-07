@@ -7,7 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Want to check the FDR with the method which is presented in Insight into Genotype-Phenotype Associations through eQTL Mapping in Multiple Cell Types in Health and Immun
+#Want to check the FDR with the method which is presented in Insight into Genotype-Phenotype Associations through eQTL Mapping in Multiple Cell Types in Health and Immun and the main paper could be found in https://academic.oup.com/aje/article/169/2/219/97415 and compare with another methods: https://academic.oup.com/aje/article/175/3/177/105981
+
 
 ```{r}
 base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
@@ -48,7 +49,7 @@ expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.
 
 ```{r}
 output_file_name_cis = tempfile()
-output_file_name_trans = tempfile()
+#output_file_name_trans = tempfile()
 output_file_name = tempfile()
 ```
 
@@ -144,6 +145,142 @@ noFDRsaveMemory = FALSE)
 
 ```{r}
 #prepare input for step2
+#save the eQTL_step1 as a table then export the snpid and gened for next step
+geneid_uniq <- read.table("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/geneid_uniq.txt", row.names=1, quote="\"", comment.char="") #65944
+snpid_uniq <- read.table("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/snpid_uniq.txt", row.names=1, quote="\"", comment.char="", col.names = TRUE) #169733
+```
 
+```{r}
+#To reduce more #SNP (169733) from step1, we want to try linear model same as first step just for cis-eQT
+#prepare SNP.txt for this step
+#SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names = 1)
+#SNP_after_filter <- SNP[SNP_calls_351_table_filter_id,] 
+SNP_after_filter_step1 <- SNP_after_filter[rownames(snpid_uniq),] # 169733    351
+write.table(SNP_after_filter_step1, file = "../../Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.txt", col.names = T, sep = "\t")
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.txt", sep="")
+#SNP_location_filter <- SNP_Location[rownames(SNP_after_filter),] # 273688 
+SNP_location_filter_step1 <- SNP_location_filter[rownames(snpid_uniq),] #169733    2
+write.table(SNP_location_filter_step1, file = "../../Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.txt", col.names = T, sep = "\t")
+snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.txt", sep="")
+expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.txt", sep="") 
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location_Exclude_Weird_Position.txt", sep="")
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  65988   4
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE)
+output_file_name = tempfile()
+```
+
+```{r}
+pvOutputThreshold_cis = 1e-5
+cisDist = 1e6
+```
+
+```{r}
+#load genotype data, expression data and covariates data
+```
+
+```{r}
+#The first main Matrix eQTL function is called:
+useModel =  modelLINEAR 
+
+eQTL_step1.a = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, #logical. Set to TRUE to display more detailed report about the progress
+pvOutputThreshold = pvOutputThreshold_cis,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
+min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
+noFDRsaveMemory = FALSE)
+```
+
+```{r}
+snpid_step1.a_uniq <- read.table("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/snpid_step1.a_uniq.txt", row.names=1, quote="\"", comment.char="")#87927
+
+```
+
+```{r}
+SNP_after_filter_step1.a <- SNP_after_filter[rownames(snpid_step1.a_uniq),] #87927   351
+write.table(SNP_after_filter_step1.a, file = "../../Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.a.txt", col.names = T, sep = "\t")
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.a.txt", sep="")
+#SNP_location_filter <- SNP_Location[rownames(SNP_after_filter),] # 273688 
+SNP_location_filter_step1.a <- SNP_location_filter[rownames(snpid_step1.a_uniq),] #87927    2
+write.table(SNP_location_filter_step1.a, file = "../../Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.a.txt", col.names = T, sep = "\t")
+snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005_step1.a.txt", sep="")
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #87927
+```
+
+```{r}
+#load genotype data, expression data
+```
+
+```{r}
+#load covariates data with cinsidering diagnosis row as a last row of covariate matrix
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
+```
+
+```{r}
+pvOutputThreshold_cis = 1e-5
+cisDist =  1e+06 #1 Mb
+```
+
+```{r}
+#The second main Matrix eQTL function is called:
+useModel =  modelLINEAR_CROSS 
+
+eQTL_step2.test = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, #logical. Set to TRUE to display more detailed report about the progress
+pvOutputThreshold = pvOutputThreshold_cis,
+snpspos = snpspos, 
+genepos = genepos,
+#cisDist = cisDist,
+pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
+min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
+noFDRsaveMemory = FALSE)
+```
+
+```{r}
+#Try with this parameter
+cisDist =  1e+04 #10 kb
+#eQTL_step2.a
+```
+
+```{r}
+#Try with this parameter
+cisDist =  2e+05 #20 kb the most significant region based on the other's study
+#eQTL_step2.b
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*), run this for all the final result
+eQTL_step2_file <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/eQTL_step2_file")
+gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA-GENE-FULL - Group 1.TXT")
+gene_expression_annotation_small <-gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1[c(1:67527), c(1,353,358,360,361,365)] #70523 6
+colnames(gene_expression_annotation_small) <- c("gene", "Gene.Symbol" , "Chromosome" ,"Start" , "Stop", "locus.type")
+eQTL_step2_merge <- merge(eQTL_step2_file,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #88671 
+
+Axiom_BioBank1.na35.annot_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/Axiom_BioBank1.na35.annot_v2.csv")
+SNP_calls_small <- Axiom_BioBank1.na35.annot_v2[,c(1,3,5,6,12,13,14,15)] #718212 8
+colnames(SNP_calls_small)[1] <- "SNP"
+eQTL_step2_merge_v2 <- merge(eQTL_step2_merge,SNP_calls_small, by = "SNP", all.x = TRUE, sort = TRUE) #88671
+```
+
+```{r}
+eQTL_step2a_file <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/eQTL_step2a_file")
+
+eQTL_step2a_merge <- merge(eQTL_step2a_file,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #88671 
+
+eQTL_step2a_merge_v2 <- merge(eQTL_step2a_merge,SNP_calls_small, by = "SNP", all.x = TRUE, sort = TRUE) #88671
 ```
 
