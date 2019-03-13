@@ -18,12 +18,12 @@ base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
 #Outlier in genotype. call rate (CR), MAF & H.W.p.value
 SNP_calls_351_table <- read.delim("C:/eQTL/SNP/SNP_calls_351_eQTL/SNP_calls_351_table.txt", row.names = 1) #628679 31, including MAF, CR, HW and SNP id for each SNPs
 #filter based on other references
-SNP_calls_351_table_filter <- SNP_calls_351_table[SNP_calls_351_table$CR >= 95 & SNP_calls_351_table$MinorAlleleFrequency > 0.05 & SNP_calls_351_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #273688 30
+SNP_calls_351_table_filter <- SNP_calls_351_table[SNP_calls_351_table$MinorAlleleFrequency > 0.05 & SNP_calls_351_table$CR > 95 & SNP_calls_351_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #273688 30
 SNP_calls_351_table_filter_id <- row.names(SNP_calls_351_table_filter) 
 write.table(SNP_calls_351_table_filter_id, file = "../../Input_Output/SNP_calls_351_table_filter_id", col.names = T, sep = "\t")
 #subset snps id after filtering from SNP.txt file
 SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names = 1)
-SNP_after_filter <- SNP[SNP_calls_351_table_filter_id,] 
+SNP_after_filter <- SNP[SNP_calls_351_table_filter_id2,] 
 write.table(SNP_after_filter, file = "../../Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", col.names = T, sep = "\t")
 ```
 
@@ -36,8 +36,8 @@ SNP_Location <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_Location.txt"
 SNP_location_filter <- SNP_Location[rownames(SNP_after_filter),] #273688 2
 write.table(SNP_location_filter, file = "../../Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", col.names = T, sep = "\t")
 snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", sep="") #remove two rows because of NA (no info from annotation file)
-#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
-covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype_No_Diagnosis.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
+#covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype_No_Diagnosis.txt", sep="")
 ```
 
 ```{r}
@@ -58,7 +58,7 @@ output_file_name = tempfile()
 #The p-value threshold determines which gene-SNP associations are saved in the output file output_file_name. Note that for larger datasets the threshold should be lower. Setting the threshold to a high value for a large dataset may cause excessively large output files.
 #pvOutputThreshold_cis = 2e-2 #defualt
 #pvOutputThreshold_tras = 1e-2 #defualt
-pvOutputThreshold =  5e-05
+pvOutputThreshold_cis =  1e-05
 #pvOutputThreshold_trans = 1e-20  #Only associations significant at this level will be saved. 
 #pvOutputThreshold_trans = 1e-10
 ```
@@ -130,13 +130,14 @@ eQTL_step1 = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
 cvrt = cvrt,
-output_file_name = output_file_name,
+output_file_name ="./eQTL_step1_test3",
 useModel = useModel, 
 errorCovariance = errorCovariance, 
 verbose = TRUE, #logical. Set to TRUE to display more detailed report about the progress
 pvOutputThreshold = pvOutputThreshold,
 snpspos = snpspos, 
 genepos = genepos,
+#cisDist = cisDist,
 pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
 min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
 noFDRsaveMemory = FALSE) 
@@ -224,43 +225,42 @@ snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = 
 covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
 ```
 
+
 ```{r}
-pvOutputThreshold_cis = 1e-5
-cisDist =  1e+06 #1 Mb
+#load genotype data from step1_test2 file
+
+eQTL_step1_test2 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/eQTL_step1_test3") #17264 only cis-eQTL pvOutputThreshold_cis = 1e-5 & cisDist =  1e+06
+eQTL_step1_test3_uniq <- unique(eQTL_step1_test3$SNP) #9162
+SNP_step1_test3_uniq<- SNP_after_filter[eQTL_step1_test3_uniq,] #9162 351
+SNP_step1_test3_uniq_sort <- SNP_step1_test3_uniq[sort(rownames(SNP_step1_test3_uniq)),]
+write.table(SNP_step1_test3_uniq_sort, file = "../../Input_Output/SNP_step1_test3_uniq_sort.txt", col.names = T, sep = "\t")
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_step1_test3_uniq_sort.txt", sep="")
 ```
 
 ```{r}
 #The second main Matrix eQTL function is called:
 useModel =  modelLINEAR_CROSS 
 
-eQTL_step2.test = Matrix_eQTL_main(
+eQTL_step2 = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
 cvrt = cvrt,
-output_file_name = output_file_name,
-useModel = useModel, 
+output_file_name = "./eQTL_step2_test16_trans",
+output_file_name.cis = "./eQTL_step2_test16",
+pvOutputThreshold = 1e-10,
+useModel =  modelLINEAR_CROSS, 
 errorCovariance = errorCovariance, 
 verbose = TRUE, #logical. Set to TRUE to display more detailed report about the progress
-pvOutputThreshold = pvOutputThreshold_cis,
+pvOutputThreshold.cis = 1e-5,
 snpspos = snpspos, 
 genepos = genepos,
-#cisDist = cisDist,
+cisDist = 5e+07,
 pvalue.hist = "qqplot", #logical, numerical, or "qqplot".Defines whether and how the distribution of p-values is recorded in the returned object.If pvalue.hist = FALSE, the information is not recorded and the analysis is performed faster. Alternatively, set pvalue.hist = "qqplot" to record information sufficient to create a QQ-plot of the p-values (use plot on the returned object to create the plot).To record information for a histogram set pvalue.hist to the desired number of bins of equal size.	Finally, pvalue.hist can also be set to a custom set of bin edges.
 min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the minimum p-value for each SNP and each gene in the returned object. The minimum p-values are recorded even if if they are above the corresponding thresholds of pvOutputThreshold and pvOutputThreshold.cis. The analysis runs faster when the parameter is set to FALSE.
 noFDRsaveMemory = FALSE)
 ```
 
-```{r}
-#Try with this parameter
-cisDist =  1e+04 #10 kb
-#eQTL_step2.a
-```
 
-```{r}
-#Try with this parameter
-cisDist =  2e+05 #20 kb the most significant region based on the other's study
-#eQTL_step2.b
-```
 
 ```{r}
 #merge two dataframe to add more info. on the final result (eQTL_step*), run this for all the final result
@@ -283,4 +283,86 @@ eQTL_step2a_merge <- merge(eQTL_step2a_file,gene_expression_annotation_small,by 
 
 eQTL_step2a_merge_v2 <- merge(eQTL_step2a_merge,SNP_calls_small, by = "SNP", all.x = TRUE, sort = TRUE) #88671
 ```
+
+
+```{r}
+#filter genes listby removing non-coding genes
+gene_expression_annotation_351.SST.RMA.GENE.Coding <- read.delim("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA-GENE-Coding.txt", header = TRUE, row.names=1) #44699 351
+#View(gene_expression_annotation_351.SST.RMA.GENE.Coding)
+#colnames(gene_expression_annotation_351.SST.RMA.GENE.Coding) <- sub(x = colnames(gene_expression_annotation_351.SST.RMA.GENE.Coding), pattern = "_HTA*.*", replacement ="")
+write.table(gene_expression_annotation_351.SST.RMA.GENE.Coding, file = "../../Input_Output/GE_coding.txt", col.names = T, sep = "\t")
+#load all input files
+expression_file_name = paste(base.dir, "/Input_Output/GE_coding.txt", sep="")
+```
+
+```{r}
+#run LINEAR_CROSS model directly.
+
+#output_file_name_cis = tempfile()
+#output_file_name_tra = tempfile()
+
+useModel =  modelLINEAR_CROSS
+cisDist = 1e6
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_tra,
+pvOutputThreshold = 1e-10,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, 
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = 1e-5,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot",
+min.pv.by.genesnp = FALSE,
+noFDRsaveMemory = FALSE)
+
+unlink(output_file_name_tra);
+unlink(output_file_name_cis);
+```
+
+```{r}
+cat('Analysis done in: ', eQTL$time.in.sec, ' seconds', '\n');
+cat('Detected local eQTLs:', '\n');
+show(eQTL$cis$eqtls)
+cat('Detected distant eQTLs:', '\n');
+show(eQTL$trans$eqtls)
+```
+
+```{r}
+plot(eQTL)
+
+png("../../Input_Output/eQTL_result/plot_eQTL_cis_dist_1e7.png")
+plot(eQTL)
+dev.off()
+```
+
+```{r}
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_trans_1e6.csv")
+```
+
+```{r}
+#I want to try for all genes 
+expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.txt", sep="") 
+```
+
+```{r}
+#filter genes list by kepping only sex genes
+gene_expression_annotation_351.SST.RMA.GENE.Sex_Chromosome <- read.delim("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA-GENE-Sex_Chromosome.txt", row.names=1) #2686 351
+colnames(gene_expression_annotation_351.SST.RMA.GENE.Sex_Chromosome) <- sub(x = colnames(gene_expression_annotation_351.SST.RMA.GENE.Sex_Chromosome), pattern = "_HTA*.*", replacement ="")
+write.table(gene_expression_annotation_351.SST.RMA.GENE.Sex_Chromosome, file = "../../Input_Output/GE_sex.txt", col.names = T, sep = "\t")
+#load all input files
+expression_file_name = paste(base.dir, "/Input_Output/GE_sex.txt", sep="")
+#load gene file and run Matrix_eQTL_main function
+
+#save the result
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_cis_dist_1e7.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_trans_1e7.csv")
+```
+
 
