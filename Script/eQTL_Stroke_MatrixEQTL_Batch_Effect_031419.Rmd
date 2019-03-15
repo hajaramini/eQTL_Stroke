@@ -1,0 +1,34 @@
+---
+title: "eQTL_Stroke_MatrixEQTL_Batch_Effect_031419"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#We want to check the batch effect in this script
+#instal package
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("limma", version = "3.8")
+library("limma")
+```
+
+```{r}
+#prepare the input files
+batch_all_HTA <- read.delim("C:/Users/sharplab/Desktop/GOOD/batch_all_HTA.txt") #559 2
+batch_all_HTA$Sample<- sub(x= batch_all_HTA$Sample, pattern = "_HTA*.*", replacement ="")
+final_sample_list <- read.csv("C:/eQTL/Primary_Files/final_sample_list.csv") #351
+batch_sample_merge <- merge(final_sample_list, batch_all_HTA, by = "name", all.x = TRUE, sort = TRUE) #351
+write.table(batch_sample_merge, file = "../../Input_Output/batch_sample_merge_351.txt", col.names = T, sep = "\t") #remove unneeded column 
+GE_Exclude_Weird_Position <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_Exclude_Weird_Position.txt", row.names=1) #65988 351
+GE.t <-t(GE_Exclude_Weird_Position)
+rownames(GE.t) # 351 samples
+
+tissuesvoom.t %>% dim() #36673  18
+tissuesvoom.t %>% dim() #36673  18
+```
+

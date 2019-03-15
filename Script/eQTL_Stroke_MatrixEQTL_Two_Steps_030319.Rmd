@@ -302,7 +302,7 @@ expression_file_name = paste(base.dir, "/Input_Output/GE_coding.txt", sep="")
 #output_file_name_tra = tempfile()
 
 useModel =  modelLINEAR_CROSS
-cisDist = 1e6
+cisDist = 250000
 eQTL = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
