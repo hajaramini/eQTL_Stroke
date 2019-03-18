@@ -221,7 +221,7 @@ snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = 
 ```
 
 ```{r}
-#load covariates data with cinsidering diagnosis row as a last row of covariate matrix
+#load covariates data with considering diagnosis row as a last row of covariate matrix
 covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
 ```
 
@@ -365,4 +365,20 @@ write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_
 write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_trans_1e7.csv")
 ```
 
+```{r}
+#additional parameters
+
+# Standard errors for the estimates.
+# Matrix eQTL currently reports estimates of the effect size (slope coefficient) and the corresponding t-statistics, but does not report the standard errors for the effect size. By definition a t-statistic is equal to the effect size estimate divided by its standard error. Thus, the standard deviation of the estimate can be easily calculated as the ration of the effect size estimates and their t-statistics.
+
+eQTL$all$eqtls$beta_se = eQTL$all$eqtls$beta / eQTL$all$eqtls$statistic
+
+# Raw correlations from which Matrix eQTL calculates t-statistics and p-values.
+# First, you would need to know the number of degrees of freedom for the full model estimated by Matrix eQTL. It is recorded in the object returned by Matrix eQTL main function:
+dfFull = eQTL$param$dfFull #343
+
+#To get the correlations from t-statistics apply the following formula:
+tstat = eQTL$cis$eqtls$statistic;
+r = tstat / sqrt( dfFull + tstat^2 )
+```
 

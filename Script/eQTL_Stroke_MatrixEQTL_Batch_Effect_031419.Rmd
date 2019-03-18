@@ -9,12 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-#We want to check the batch effect in this script
+#We want to check the batch effect in this script so check transformed data to see is there any batch effect.
 #instal package
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #     install.packages("BiocManager")
 # BiocManager::install("limma", version = "3.8")
 library("limma")
+#install.packages("tidyverse")
+library("tidyverse")
 ```
 
 ```{r}
@@ -26,9 +28,209 @@ batch_sample_merge <- merge(final_sample_list, batch_all_HTA, by = "name", all.x
 write.table(batch_sample_merge, file = "../../Input_Output/batch_sample_merge_351.txt", col.names = T, sep = "\t") #remove unneeded column 
 GE_Exclude_Weird_Position <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_Exclude_Weird_Position.txt", row.names=1) #65988 351
 GE.t <-t(GE_Exclude_Weird_Position)
-rownames(GE.t) # 351 samples
+rownames(GE.t)
+```
 
-tissuesvoom.t %>% dim() #36673  18
-tissuesvoom.t %>% dim() #36673  18
+```{r}
+#check transformed data to see is there any batch effect.
+test1 <- as.matrix(dist(GE.t)) #351 351
+#perform the multi-dimensional scaling
+test2 <- as.data.frame(cmdscale(test1))
+head(test2) #now we have 2 dimensions 
+dim(test2) #351  2
+plot(test2)
+batch_info <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/batch_sample_merge_351_v2.txt") # create file for batch information 352 2
+test2$sample <- rownames(test2)
+test2 %>% 
+  left_join(batch_info, by = "sample") %>% 
+  ggplot() +
+  geom_point(aes(x= V1 ,y= V2, color=as.factor(batch)))
+
+ggsave("MDS_351_Samples_Batch_Effect.png") #save in Plot folder in Input_Output folder
+
+```
+
+
+```{r}
+#For plotting the PCA using http://genomicsclass.github.io/book/pages/pca_svd.html
+library(devtools)
+#install_github("ririzarr/rafalib")
+# if (!require("RColorBrewer")) {
+# install.packages("RColorBrewer")
+# library(RColorBrewer)
+# }
+library(rafalib)
+```
+
+```{r}
+batch_info <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/batch_sample_merge_351_v2.txt", row.names = 1)
+setdiff(rownames(batch_info), colnames(GE_Exclude_Weird_Position)) #find issue, differences between two lists
+# [1] "UCDSS.007-CT" "UCSFCJ-004"   "UCSFCJ-005"   "UCSFCJ-007"   "UCSFCJ-009"   "UCSFCJ-011"   "UCSFCJ-012"   "UCSFCJ-017"   "UCSFCJ-023"  
+# [10] "UCSFCJ-031"   "UCSFCJ-050"   "UCSFCJ-054"   "UCSFCJ-057"   "UCSFCJ-065"   "UCSFCJ-070"   "UCSFCJ-072"   "UCSFCJ-091"   "UCSFCJ-092"  
+# [19] "UCSFCJ-097"   "UCSFCJ-099"   "UCSFCJ-101"   "UCSFCJ-109"   "UCSFCJ-115"   "UCSFCJ-123"   "UCSFCJ-124"   "UCSFCJ-127"   "UCSFCJ-128"  
+# [28] "UCSFCJ-131"   "UCSFCJ-137"   "UCSFCJ-139"   "UCSFCJ-141"  
+setdiff(rownames(batch_info), colnames(GE_Exclude_Weird_Position))
+#character(0)
+#add the batch row as row in expression matrix by using mergeBatchWithGE.cpp script
+GE_Exclude_Weird_Position_withBatch <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_Exclude_Weird_Position_withBatch.txt", row.names=1) # 65989 351 #31 samples correspond to third batch (not too much), the first and second batch are close to each others based on the running time
+```
+
+```{r}
+#First, the typical principal component analysis on the samples would be to transpose the data such that the samples are rows of the data matrix
+x <- t(GE_Exclude_Weird_Position_withBatch)
+y <- as.data.frame(x)
+pc <- prcomp(y)
+names(pc)
+#[1] "sdev"     "rotation" "center"   "scale"    "x"  
+plot(pc$x[, 1], pc$x[, 2], col = y$Batchs, main = "PCA", xlab = "PC1", ylab = "PC2")
+
+```
+
+```{r}
+cx <- sweep(x, 2, colMeans(x), "-")
+sv <- svd(cx)
+names(sv)
+#So the columns of U from the SVD correspond to the principal components x in the PCA. Furthermore, the matrix V from the SVD is equivalent to the rotation matrix returned by prcomp.
+plot(sv$u[, 1], sv$u[, 2], col = y$Batchs, main = "SVD", xlab = "U1", ylab = "U2")
+pc$rotation[1:5, 1:5] #same as sv$v[1:5, 1:5]
+sv$v[1:5, 1:5]
+
+```
+
+```{r}
+#By dividing the variances by the sum, we get a plot of the ratio of variance explained by each principal component.
+plot(sv$d^2/sum(sv$d^2), xlim = c(0, 15), type = "b", pch = 16, xlab = "principal components", 
+    ylab = "variance explained")
+pc_first_fourth <- 3.365536e-01 +9.656003e-02 +5.180176e-02 +4.502680e-02 #0.5299422
+```
+
+```{r}
+#I want to check the eQTL result by considering batch as a row in covariate matrix
+base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="") #add batch row just to check
+##covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
+
+```
+
+
+```{r}
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", sep="")
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location_Exclude_Weird_Position.txt", sep="")
+snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location.txt", sep="") #include all SNPs location
+expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.txt", sep="") #with all genes
+```
+
+```{r}
+output_file_name_cis = tempfile()
+output_file_name_tra = tempfile()
+errorCovariance = numeric()
+```
+
+
+```{r}
+## Load genotype data
+snps = SlicedData$new() #SlicedData object with genotype information.
+snps$fileDelimiter = "\t"      # the TAB character
+snps$fileOmitCharacters = "NA" # denote missing values;
+snps$fileSkipRows = 1          # one row of column labels
+snps$fileSkipColumns = 1       # one column of row labels
+snps$fileSliceSize = 2000    # read file in slices of 2,000 rows
+snps$LoadFile(SNP_file_name) #Number of columns: 351, Number of rows: 273688 
+
+#Rows read:  273688  done. This is correct, we have  273688  SNPs id
+```
+
+```{r}
+# Load gene expression data
+gene = SlicedData$new(); #SlicedData object with gene expression information. Must have columns matching those of snps, create gene including row and column
+gene$fileDelimiter = "\t"      # the TAB characte
+gene$fileOmitCharacters = "NA" # denote missing values;
+gene$fileSkipRows = 1          # one row of column labels
+gene$fileSkipColumns = 1       # one column of row labels
+gene$fileSliceSize = 2000      # read file in slices of 2,000 rows
+gene$LoadFile(expression_file_name) #Number of columns: 351, Number of rows: 65988
+
+#Rows read: 65988 done. This is correct, we have 65988 genes
+```
+
+```{r}
+# Load covariates
+cvrt = SlicedData$new();
+cvrt$fileDelimiter = "\t"      # the TAB character
+cvrt$fileOmitCharacters = "NA" # denote missing values;
+cvrt$fileSkipRows = 1         # one row of column labels
+cvrt$fileSkipColumns = 1      # one column of row labels
+if(length(covariates_file_name)>0) {
+cvrt$LoadFile(covariates_file_name)
+}
+#Rows read: 5 done. correct
+```
+
+```{r}
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  65988   4
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677  3
+```
+
+```{r}
+useModel =  modelLINEAR_CROSS
+cisDist = 1e7
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_tra,
+pvOutputThreshold = 1e-10,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, 
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = 1e-5,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot",
+min.pv.by.genesnp = FALSE,
+noFDRsaveMemory = FALSE)
+
+unlink(output_file_name_tra);
+unlink(output_file_name_cis);
+```
+
+```{r}
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/batch/eQTL_cis_dist_1e7.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/batch/eQTL_trans_1e7.csv")
+```
+
+```{r}
+#check batch factor only with coding genes
+expression_file_name = paste(base.dir, "/Input_Output/GE_coding.txt", sep="")
+```
+
+
+```{r}
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("sva", version = "3.8")
+library("sva")
+library("limma")
+GE_batch_corrected <- removeBatchEffect(GE_Exclude_Weird_Position, batch = batch_info$batch) #laso we can use ComBat function to remove batch
+
+test1 <- as.matrix(dist(t(GE_batch_corrected)))  
+test2 <- as.data.frame(cmdscale(test1))
+test2$sample <- rownames(test2)
+test2 %>% 
+  left_join(batch_info, by = "sample") %>% 
+  ggplot() + 
+  geom_point(aes(x = V1, y= V2, color = as.factor(batch))) # no changes occurs before removing batch effects
+
+write.table(GE_batch_corrected, file = "../../Input_Output/GE_batch_corrected.txt", col.names = T, sep = "\t")
+
+save(GE_batch_corrected, file = "../../Input_Output/GE_batch_corrected.Rdata") # use this dataset for downstream analysis
+```
+
+```{r}
+#check batch factor with all genes after removing batch effect 
+expression_file_name = paste(base.dir, "/Input_Output/GE_batch_corrected.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
 ```
 

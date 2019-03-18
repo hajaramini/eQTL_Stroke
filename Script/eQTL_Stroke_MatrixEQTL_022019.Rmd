@@ -49,7 +49,16 @@ expression_file_name = paste(base.dir, "/Input_Output/GE.txt", sep="")
 #covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
 covariates_file_name = paste(base.dir, "/Input_Output/Covariates_PCs_Partek.txt", sep="")
 gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
+#gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location_Exclude_Weird_Position.txt", sep="") just for test
 snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location.txt", sep="")
+```
+
+```{r}
+Gene_Location_Exclude_Weird_Position <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Gene_Location_Exclude_Weird_Position.txt", row.names=1)
+GE <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE.txt", row.names=1)
+gene_expression_exlude_weird_position <- GE[rownames(Gene_Location_Exclude_Weird_Position),] #65988
+write.table(gene_expression_exlude_weird_position, file = "../../Input_Output/GE_Exclude_Weird_Position.txt", sep = "\t")
+expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.txt", sep="") 
 ```
 
 
@@ -64,7 +73,7 @@ output_file_name_trans = tempfile()
 #pvOutputThreshold_tras = 1e-2 #defualt
 pvOutputThreshold_cis = 1e-5
 #pvOutputThreshold_trans = 1e-20  #Only associations significant at this level will be saved. 
-pvOutputThreshold_trans = 1e-20
+pvOutputThreshold_trans = 1e-15
 ```
 
 ```{r}
@@ -76,6 +85,7 @@ errorCovariance = numeric() #since we do not have this file keep it empty()
 # Distance for local gene-SNP pairs, numeric. SNP-gene pairs within this distance are considered local. The distance is measured from the nearest end of the gene. SNPs within a gene are always considered local.
 cisDist = 1e5 #keep this as a cis out of this distance conder as a trans
 #cisDist = 1e9 # we can try this
+#try  5e+05
 ```
 
 ```{r}
@@ -121,7 +131,7 @@ cvrt$LoadFile(covariates_file_name)
 
 ```{r}
 genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  67528     4
-snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3, there is any info in annotation file for these two AFFX-SNP-000541 and AFFX-SNP-002255 in Axiom_BioBank1.na35.annot_v2 files, so removed them 
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3, there is no info in annotation file for these two AFFX-SNP-000541 and AFFX-SNP-002255 in Axiom_BioBank1.na35.annot_v2 files, so removed them 
 #snpspos.chr <- paste("chr",sep = "",snpspos$chr) #add chr first of each number of chr
 #write.table(snpspos.chr, file = "../../Input_Output/snpspos.chr.txt") 
 #cat snpspos.chr.txt | sed 's/ /\t/g' | cut -f2 | sed 's/"//g' > snpspos.chr.v2.txt #replace this snpspos.chr.txt with column in SNP_Location file to make this file identical to Gene_Location
@@ -190,7 +200,7 @@ save(snpspos,genepos, file = "../../Input_Output/snpspos_genepos_final.Rdata")
 
 ```{r}
 #Finally, the main Matrix eQTL function is called:
-eQTL_try4 = Matrix_eQTL_main(
+eQTL_try15 = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
 cvrt = cvrt,
@@ -209,7 +219,7 @@ min.pv.by.genesnp = FALSE, #logical. Set min.pv.by.genesnp = TRUE to record the 
 noFDRsaveMemory = FALSE); #logical. Set noFDRsaveMemory = TRUE to save significant gene-SNP pairs directly to the output files, reduce memory footprint and skip FDR calculation. The eQTLs are not recorded in the returned object if noFDRsaveMemory = TRUE.
 
 #got this error: Error: cannot allocate vector of size 148.0 Gb if noFDRsaveMemory = FALSE) #because of slicesize set to more thatn 2000
-#Error in saver.cis$getResults(gene, snps, n.tests.cis) : unused arguments (gene, snps, n.tests.cis) #becuase of CRAN version of this library
+#Error in saver.cis$getResults(gene, snps, n.tests.cis) : unused arguments (gene, snps, n.tests.cis) #because of CRAN version of this library
 ```
 
 ```{r}
