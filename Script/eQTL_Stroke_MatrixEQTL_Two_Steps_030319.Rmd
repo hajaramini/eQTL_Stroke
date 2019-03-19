@@ -7,6 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#Troubleshooting for further analysis
 #Want to check the FDR with the method which is presented in Insight into Genotype-Phenotype Associations through eQTL Mapping in Multiple Cell Types in Health and Immun and the main paper could be found in https://academic.oup.com/aje/article/169/2/219/97415 and compare with another methods: https://academic.oup.com/aje/article/175/3/177/105981
 
 
@@ -286,7 +287,7 @@ eQTL_step2a_merge_v2 <- merge(eQTL_step2a_merge,SNP_calls_small, by = "SNP", all
 
 
 ```{r}
-#filter genes listby removing non-coding genes
+#filter genes list by removing non-coding genes
 gene_expression_annotation_351.SST.RMA.GENE.Coding <- read.delim("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA-GENE-Coding.txt", header = TRUE, row.names=1) #44699 351
 #View(gene_expression_annotation_351.SST.RMA.GENE.Coding)
 #colnames(gene_expression_annotation_351.SST.RMA.GENE.Coding) <- sub(x = colnames(gene_expression_annotation_351.SST.RMA.GENE.Coding), pattern = "_HTA*.*", replacement ="")
@@ -382,3 +383,136 @@ tstat = eQTL$cis$eqtls$statistic;
 r = tstat / sqrt( dfFull + tstat^2 )
 ```
 
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e6.csv")
+gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA-GENE-FULL - Group 1.TXT")
+gene_expression_annotation_small <-gene_expression_annotation_351.SST.RMA.GENE.FULL...Group.1[c(1:67527), c(1,353,358,360,361,365)] #70523 6
+colnames(gene_expression_annotation_small) <- c("gene", "Gene.Symbol" , "Chromosome" ,"Start" , "Stop", "locus.type")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #125
+
+Axiom_BioBank1.na35.annot_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_351_eQTL/Axiom_BioBank1.na35.annot_v2.csv")
+SNP_calls_small <- Axiom_BioBank1.na35.annot_v2[,c(1,3,5,6,12,13,14,15)] #718212 8
+colnames(SNP_calls_small)[1] <- "snps"
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#125
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e6_merge.csv")
+
+#save 
+save(gene_expression_annotation_small,SNP_calls_small, file = "../../Input_Output/gene_expression_annotation_SNP_calls_small.RData")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #62
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#62
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e6_merge.csv")
+```
+
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_cis_dist_5e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_5e6.csv")
+eQTL_cis_dist_5e6_merge <- merge(eQTL_cis_dist_5e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #561
+
+eQTL_cis_dist_5e6_merge_v2 <- merge(eQTL_cis_dist_5e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#561
+write.csv(eQTL_cis_dist_5e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_5e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_5e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_5e6.csv") #62
+eQTL_trans_5e6_merge <- merge(eQTL_trans_5e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #62
+
+eQTL_trans_5e6_merge_v2 <- merge(eQTL_trans_5e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#62
+write.csv(eQTL_trans_5e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_5e6_merge.csv") #same as 1e6
+```
+
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_cis_dist_1e7 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e7.csv") #998
+eQTL_cis_dist_1e7_merge <- merge(eQTL_cis_dist_1e7,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #998
+
+eQTL_cis_dist_1e7_merge_v2 <- merge(eQTL_cis_dist_1e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#998
+write.csv(eQTL_cis_dist_1e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e7_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_1e7 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e7.csv") #62
+eQTL_trans_1e7_merge <- merge(eQTL_trans_1e7,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #62
+
+eQTL_trans_1e7_merge_v2 <- merge(eQTL_trans_1e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#62
+write.csv(eQTL_trans_1e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e7_merge.csv") #same as 1e6
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_cis_dist_5e7 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_5e7.csv") #3690
+eQTL_cis_dist_5e7_merge <- merge(eQTL_cis_dist_5e7,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #3690
+
+eQTL_cis_dist_5e7_merge_v2 <- merge(eQTL_cis_dist_5e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#3690
+write.csv(eQTL_cis_dist_5e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_5e7_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_5e7 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_5e7.csv") #58
+eQTL_trans_5e7_merge <- merge(eQTL_trans_5e7,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #58
+
+eQTL_trans_5e7_merge_v2 <- merge(eQTL_trans_5e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#58
+write.csv(eQTL_trans_5e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_5e7_merge.csv")
+#cis-eQTL with cisDist 2e7 same as 1e7
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_cis_dist_1e8 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e8.csv") #5687
+eQTL_cis_dist_1e8_merge <- merge(eQTL_cis_dist_1e8,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #5687
+
+eQTL_cis_dist_1e8_merge_v2 <- merge(eQTL_cis_dist_1e8_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5687
+write.csv(eQTL_cis_dist_1e8_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e8_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_1e8 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e8.csv") #54
+eQTL_trans_1e8_merge <- merge(eQTL_trans_1e8,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #54
+
+eQTL_trans_1e8_merge_v2 <- merge(eQTL_trans_1e8_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#54
+write.csv(eQTL_trans_1e8_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e8_merge.csv") #same as 1e6
+```
+
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding_noncoding folder
+eQTL_cis_dist_1e8 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e8.csv") #5687
+eQTL_cis_dist_1e8_merge <- merge(eQTL_cis_dist_1e8,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #5687
+
+eQTL_cis_dist_1e8_merge_v2 <- merge(eQTL_cis_dist_1e8_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5687
+write.csv(eQTL_cis_dist_1e8_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_cis_dist_1e8_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_1e8 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e8.csv") #54
+eQTL_trans_1e8_merge <- merge(eQTL_trans_1e8,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #54
+
+eQTL_trans_1e8_merge_v2 <- merge(eQTL_trans_1e8_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#54
+write.csv(eQTL_trans_1e8_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/coding/eQTL_trans_1e8_merge.csv") #same as 1e6
+```

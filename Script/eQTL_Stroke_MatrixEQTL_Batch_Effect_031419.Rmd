@@ -7,6 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#Troubleshooting for further analysis
 
 ```{r}
 #We want to check the batch effect in this script so check transformed data to see is there any batch effect.
@@ -173,7 +174,7 @@ snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = 
 
 ```{r}
 useModel =  modelLINEAR_CROSS
-cisDist = 1e7
+cisDist = 2e7
 eQTL = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 

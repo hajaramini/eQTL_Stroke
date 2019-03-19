@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#start working with MatrixEQTL
+
 ```{r}
 #start with installing MatrixEQTL "http://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html"
 #install.packages("MatrixEQTL")
@@ -178,7 +180,7 @@ for( sl in 1:length(gene) ) {
 }
 rm(sl, mat);
 
-#normalize gene expression
+#normalize gene expression for our comparison we don not this filter
 
 #A similar approach allows one to run Kruskal-Wallis tests external link with Matrix eQTL. In this case one has to use the ANOVA model (useModel = modelANOVA) and transform the measurements for each gene into their respective ranks.
 # 
