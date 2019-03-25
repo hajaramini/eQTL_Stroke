@@ -7,7 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#start working with MatrixEQTL
+#start working with MatrixEQTL (First version)
 
 ```{r}
 #start with installing MatrixEQTL "http://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html"

@@ -84,7 +84,7 @@ pc <- prcomp(y)
 names(pc)
 #[1] "sdev"     "rotation" "center"   "scale"    "x"  
 plot(pc$x[, 1], pc$x[, 2], col = y$Batchs, main = "PCA", xlab = "PC1", ylab = "PC2")
-
+save(pc,file="../../Input_Output/pc_gene_expression.RData")
 ```
 
 ```{r}
@@ -95,7 +95,8 @@ names(sv)
 plot(sv$u[, 1], sv$u[, 2], col = y$Batchs, main = "SVD", xlab = "U1", ylab = "U2")
 pc$rotation[1:5, 1:5] #same as sv$v[1:5, 1:5]
 sv$v[1:5, 1:5]
-
+save(sv,file="../../Input_Output/sv_gene_expression.RData")
+save(cx,file="../../Input_Output/cx_gene_expression.RData")
 ```
 
 ```{r}
@@ -174,7 +175,7 @@ snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = 
 
 ```{r}
 useModel =  modelLINEAR_CROSS
-cisDist = 2e7
+cisDist = 5e7
 eQTL = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
