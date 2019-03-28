@@ -175,7 +175,7 @@ snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = 
 
 ```{r}
 useModel =  modelLINEAR_CROSS
-cisDist = 5e7
+cisDist = 2e6
 eQTL = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
