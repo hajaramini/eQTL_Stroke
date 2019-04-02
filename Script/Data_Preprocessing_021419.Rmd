@@ -104,3 +104,20 @@ dim(Covariates_Final) #351 8
 
 ```
 
+```{r}
+#PAX
+test1 <- as.matrix(dist(test)) #351 351
+#perform the multi-dimensional scaling
+test2 <- as.data.frame(cmdscale(test1))
+head(test2) #now we have 2 dimensions 
+dim(test2) #351  2
+plot(test2)
+batch_info <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/batch_sample_merge_351_v2.txt") # create file for batch information 352 2
+test2$sample <- rownames(test2)
+test2 %>% 
+  ggplot() +
+  geom_point(aes(x= V1 ,y= V2, color=as.factor(test$Dx)))
+ggsave("NEU_MDS.png")
+
+```
+

@@ -160,6 +160,8 @@ write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQ
 ```
 
 
+
+
 ```{r}
 #merge two dataframe to add more info. on the final result (eQTL_step*)
 #start with coding folder
@@ -179,4 +181,32 @@ eQTL_trans_1e8_merge <- merge(eQTL_trans_1e8,gene_expression_annotation_small,by
 
 eQTL_trans_1e8_merge_v2 <- merge(eQTL_trans_1e8_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#29
 write.csv(eQTL_trans_1e8_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_trans_1e8_merge.csv")
+```
+
+```{r}
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_cis_dist_2e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_trans_2e6.csv")
+
+```
+
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_cis_dist_2e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_cis_dist_2e6.csv")
+#load( "../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_2e6_merge <- merge(eQTL_cis_dist_2e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #114
+
+eQTL_cis_dist_2e6_merge_v2 <- merge(eQTL_cis_dist_2e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#114
+write.csv(eQTL_cis_dist_2e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_cis_dist_2e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#start with coding folder
+eQTL_trans_2e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_trans_2e6.csv")
+eQTL_trans_2e6_merge <- merge(eQTL_trans_2e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #33
+
+eQTL_trans_2e6_merge_v2 <- merge(eQTL_trans_2e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#33
+write.csv(eQTL_trans_2e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_trans_2e6_merge.csv")
 ```

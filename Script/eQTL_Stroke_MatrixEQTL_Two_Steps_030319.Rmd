@@ -313,7 +313,7 @@ expression_file_name = paste(base.dir, "/Input_Output/GE_coding.txt", sep="")
 #output_file_name_tra = tempfile()
 
 useModel =  modelLINEAR_CROSS
-cisDist = 1e6
+cisDist = 2e7
 eQTL = Matrix_eQTL_main(
 snps = snps, 
 gene = gene, 
@@ -727,6 +727,6 @@ write.csv(eQTL_trans_2e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/
 
 
 ```{r}
-#now search each list in Enricher and put the result on powerpoint
+#now search each list in Enricher
 ```
 
