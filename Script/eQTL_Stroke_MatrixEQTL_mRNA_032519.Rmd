@@ -21,7 +21,6 @@ write.table(gene_expression_annotation_351.SST.RMA_mRNA_small, file = "../../Inp
 ```{r}
 expression_file_name = paste(base.dir, "/Input_Output/GE_mRNA_20328.txt", sep="") 
 #back to other script to run eQTL function for this GE dataset
-
 ```
 
 ```{r}
@@ -160,8 +159,6 @@ write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQ
 ```
 
 
-
-
 ```{r}
 #merge two dataframe to add more info. on the final result (eQTL_step*)
 #start with coding folder
@@ -209,4 +206,98 @@ eQTL_trans_2e6_merge <- merge(eQTL_trans_2e6,gene_expression_annotation_small,by
 
 eQTL_trans_2e6_merge_v2 <- merge(eQTL_trans_2e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#33
 write.csv(eQTL_trans_2e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_trans_2e6_merge.csv")
+```
+
+# redo analysis for x-linked and y-linked genes from mRNA list not all coding and noncoding genes 
+
+```{r}
+#cat gene_expression_annotation_351.SST-RMA-GENE-FULL\ -\ Group\ 1.TXT | grep "mRNA" > gene_expression_annotation_351.SST-RMA_mRNA_like.txt, then remove mRNA like such as lncoding RNA by keeping only mRNA and set the new output's name to gene_expression_annotation_351.SST-RMA_mRNA.txt #(27337 genes)
+gene_expression_annotation_351.SST.RMA_mRNA_sex <- read.csv("C:/eQTL/GENE/Picked_Files/gene_expression_351/gene_expression_annotation_351.SST-RMA_mRNA_sex.csv", row.names=1) #898 364
+
+colnames(gene_expression_annotation_351.SST.RMA_mRNA_sex) <- sub(x = colnames(gene_expression_annotation_351.SST.RMA_mRNA_sex), pattern = "_HTA*.*", replacement ="") 
+GE <- gene_expression_annotation_351.SST.RMA_mRNA_sex[,c(1:351)] # dim 898 351
+write.table(GE, file = "../../Input_Output/GE_mRNA_sex_898.txt",col.names =T, sep = "\t") 
+```
+
+
+```{r}
+expression_file_name = paste(base.dir, "/Input_Output/GE_mRNA_sex_898.txt", sep="") 
+#back to other script to run eQTL function for this GE dataset
+```
+
+```{r}
+write.csv(eQTL$trans$eqtls, "../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_5e6.csv")
+write.csv(eQTL$cis$eqtls, "../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dis_5e6.csv")
+```
+
+```{r}
+#sex folder in mRNA folder to compare with another sex folder
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex//eQTL_cis_dist_1e6.csv") #1
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #1
+
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#62
+write.csv(eQTL_cis_dist_1e6_merge_v2,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_1e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_1e6.csv") #5
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #5
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_1e6_merge.csv") 
+```
+
+```{r}
+#sex folder in mRNA folder to compare with another sex folder
+eQTL_cis_dist_2e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_2e6.csv") #3
+eQTL_cis_dist_2e6_merge <- merge(eQTL_cis_dist_2e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #3
+
+eQTL_cis_dist_2e6_merge_v2 <- merge(eQTL_cis_dist_2e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#62
+write.csv(eQTL_cis_dist_2e6_merge_v2,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_2e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_2e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_2e6.csv") #5
+eQTL_trans_2e6_merge <- merge(eQTL_trans_2e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #5
+
+eQTL_trans_2e6_merge_v2 <- merge(eQTL_trans_2e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5
+write.csv(eQTL_trans_2e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_2e6_merge.csv")
+```
+
+```{r}
+#sex folder in mRNA folder to compare with another sex folder
+eQTL_cis_dist_5e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_5e6.csv") #6
+eQTL_cis_dist_5e6_merge <- merge(eQTL_cis_dist_5e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #6
+
+eQTL_cis_dist_5e6_merge_v2 <- merge(eQTL_cis_dist_5e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#6
+write.csv(eQTL_cis_dist_5e6_merge_v2,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_5e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_5e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_5e6.csv") #5
+eQTL_trans_5e6_merge <- merge(eQTL_trans_5e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #5
+
+eQTL_trans_5e6_merge_v2 <- merge(eQTL_trans_5e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5
+write.csv(eQTL_trans_5e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_5e6_merge.csv")
+```
+
+```{r}
+#sex folder in mRNA folder to compare with another sex folder
+eQTL_cis_dist_1e7 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_1e7.csv") #6
+eQTL_cis_dist_1e7_merge <- merge(eQTL_cis_dist_1e7,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #6
+
+eQTL_cis_dist_1e7_merge_v2 <- merge(eQTL_cis_dist_1e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#6
+write.csv(eQTL_cis_dist_1e7_merge_v2,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_1e7_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e7 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_1e7.csv") #5
+eQTL_trans_1e7_merge <- merge(eQTL_trans_1e7,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #5
+
+eQTL_trans_1e7_merge_v2 <- merge(eQTL_trans_1e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5
+write.csv(eQTL_trans_1e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_1e7_merge.csv")
 ```
