@@ -301,3 +301,69 @@ eQTL_trans_1e7_merge <- merge(eQTL_trans_1e7,gene_expression_annotation_small,by
 eQTL_trans_1e7_merge_v2 <- merge(eQTL_trans_1e7_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#5
 write.csv(eQTL_trans_1e7_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_trans_1e7_merge.csv")
 ```
+
+```{r}
+#save the SNP and expression matrix which ws used for final analysis
+#SNP_CRmore95_MAFmore0.05_HWEmore0.0000005 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", row.names=1)
+#GE_mRNA_20328 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_mRNA_20328.txt", row.names=1)
+#Covariates_Final_No_PC_NO_Subtype <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", row.names=1)
+save(GE_mRNA_20328, SNP_CRmore95_MAFmore0.05_HWEmore0.0000005, file = "../../Input_Output/RData/GE_mRNA_SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.RData")
+```
+
+```{r}
+#compare lm() result with MatrixeQTL function "https://rdrr.io/cran/MatrixEQTL/man/modelLINEAR_CROSS.html"
+#snp <- as.matrix(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005)
+#ge <- as.matrix(GE_mRNA_20328)
+#cvr <-as.matrix(Covariates_Final_No_PC_NO_Subtype)
+#for lm() finction needs to transpose dataset
+#snps.mat <- t(snp) # 351 273688
+#gene.mat <-t(ge) #  351 20328
+#cvrt.mat <- t(cvr) #351 4
+# snps.mat2 <- as.matrix(snps.mat[,1])
+# class(snps.mat2)
+# gene.mat2 <- as.matrix(gene.mat[,1])
+
+
+beta = eQTL$all$eqtls$beta;
+tstat = eQTL$all$eqtls$statistic;
+pvalue = eQTL$all$eqtls$pvalue;
+rez = c(beta = beta, tstat = tstat, pvalue = pvalue)
+# And compare to those from the linear regression in R
+{
+    cat('\n\n Matrix eQTL: \n'); 
+    print(rez);
+    cat('\n R summary(lm()) output: \n')
+   lmodel = lm(gene.mat2~ snps.mat2 + cvrt.mat + snps.mat2*cvrt.mat); 
+                   
+    lmout = tail(summary(lmodel)$coefficients,1)[, c("Estimate", "t value", "Pr(>|t|)")];
+    print( tail(lmout) );
+}
+# Results from Matrix eQTL and 'lm' must agree
+stopifnot(all.equal(lmout, rez, check.attributes = FALSE));
+#should see something like as follows:
+#  Matrix eQTL: 
+#         beta        tstat       pvalue 
+# 1.092349e+00 1.258344e+01 2.844406e-08 
+# 
+#  R summary(lm()) output: 
+#     Estimate      t value     Pr(>|t|) 
+# 1.092349e+00 1.258344e+01 2.844406e-08 
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(lmodel)
+abline(lmodel)
+```
+
+```{r}
+cvrt2 <- as.data.frame(cvrt.mat)
+cvrt.stroke <- cvrt2[cvrt2$diagnosis == 4,] #subset only stroke group #183
+cvrt.control <- cvrt2[cvrt2$diagnosis == 1,] #subset only control group #168
+snps.mat2.stroke <-as.matrix(snps.mat2[rownames(cvrt.stroke),])
+snps.mat2.control <-as.matrix(snps.mat2[rownames(cvrt.control),])
+gene.mat2.stroke <-as.matrix(gene.mat2[rownames(cvrt.stroke),])
+gene.mat2.control <-as.matrix(gene.mat2[rownames(cvrt.control),])
+
+```
+
