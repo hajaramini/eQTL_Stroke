@@ -333,7 +333,7 @@ rez = c(beta = beta, tstat = tstat, pvalue = pvalue)
     cat('\n\n Matrix eQTL: \n'); 
     print(rez);
     cat('\n R summary(lm()) output: \n')
-   lmodel = lm(gene.mat2~ snps.mat2 + cvrt.mat + snps.mat2*cvrt.mat); 
+   lmodel = lm(gene.mat2~ snps.mat2 + cvrt.mat + snps.mat2*cvrt.mat[,4]); #4 refers to the last column. here means diagnosis
                    
     lmout = tail(summary(lmodel)$coefficients,1)[, c("Estimate", "t value", "Pr(>|t|)")];
     print( tail(lmout) );
@@ -352,7 +352,7 @@ stopifnot(all.equal(lmout, rez, check.attributes = FALSE));
 
 ```{r}
 par(mfrow=c(2,2))
-plot(lmodel)
+plot(lmodel$coefficients)
 abline(lmodel)
 ```
 
@@ -362,8 +362,341 @@ cvrt.stroke <- cvrt2[cvrt2$diagnosis == 4,] #subset only stroke group #183
 cvrt.control <- cvrt2[cvrt2$diagnosis == 1,] #subset only control group #168
 snps.mat2.stroke <-as.matrix(snps.mat2[rownames(cvrt.stroke),])
 snps.mat2.control <-as.matrix(snps.mat2[rownames(cvrt.control),])
-gene.mat2.stroke <-as.matrix(gene.mat2[rownames(cvrt.stroke),])
+#gene.mat2.stroke <-as.matrix(gene.mat2[rownames(cvrt.stroke),])
 gene.mat2.control <-as.matrix(gene.mat2[rownames(cvrt.control),])
+plot(snps.mat2.control,gene.mat2.control)
+```
+
+
+```{r}
+#To create dataset for plotting interaction "https://cran.r-project.org/web/packages/sjPlot/vignettes/plot_interactions.html"
+#SNP_CRmore95_MAFmore0.05_HWEmore0.0000005 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", row.names=1)
+#View(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005)
+SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t <- t(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005)
+#dim(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#Covariates_Final_No_PC_NO_Subtype <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", row.names=1)
+#View(Covariates_Final_No_PC_NO_Subtype)
+Covariates_Final_No_PC_NO_Subtype_t <-t(Covariates_Final_No_PC_NO_Subtype)
+#class(Covariates_Final_No_PC_NO_Subtype_t)
+#class(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#class(GE_mRNA_20328_t)
+merge <- cbind(GE_mRNA_20328_t,SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#dim(merge)
+#dim(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#dim(GE_mRNA_20328_t) 273688 + 20328
+merge_v2 <- cbind(merge,Covariates_Final_No_PC_NO_Subtype_t)
+#dim(merge_v2) #final dataset
+#write.csv(merge_v2, "../../Input_Output/merge_final.txt", col.names = T, sep = "\t")
+merge_v3 <- as.data.frame(merge_v2)
+save(merge_v3, file = "../../Input_Output/merge_final.RData")
+```
+
+```{r}
+#required library
+# library(sjPlot)
+# library(sjmisc)
+# library(ggplot2)
+```
+
+```{r}
+#make categorical
+# merge_v3$diagnosis <- to_factor(merge_v3$diagnosis)
+# #fit model with interaction picked one pair
+# fit <- lm(TC01000003.hg.1~`AFFX-KIT-000001` +age+race+sex +`AFFX-KIT-000001`*diagnosis, data = merge_v3)
+# #plotting
+# plot_model(fit, type = "pred", terms = c("AFFX-KIT-000001","diagnosis"))
+# plot_model(fit, type = "pred", terms = c("diagnosis","AFFX-KIT-000001"))
 
 ```
+
+```{r}
+#check the plot for one significant SNP-gene pair from eQTL_dist_1e6
+#   X        snps            gene statistic       pvalue        FDR        beta
+# 1   1 AX-14758778 TC04001305.hg.1 -5.985654 5.417431e-09 0.02260843 -0.45290434
+# 2   2 AX-40592209 TC20001033.hg.1 -5.631148 3.723028e-08 0.06760264 -0.06751612
+# 3   3 AX-11336441 TC02001095.hg.1  5.580785 4.859682e-08 0.06760264  0.09543061
+# 4   4 AX-29907155 TC11001143.hg.1  5.452492 9.499488e-08 0.09910994  0.25824924
+fit <- lm(TC11001143.hg.1~`AX-29907155` +age+race+sex +`AX-29907155`*diagnosis, data = merge_v3)
+plot_model(fit, type = "pred", terms = c("AX-29907155","diagnosis"))
+# 5   5 AX-39724859 TC01000514.hg.1  5.405367 1.211415e-07 0.10111133  0.15726662
+# 6   6 AX-15964685 TC08000305.hg.1  5.198619 3.451509e-07 0.20825690  0.30886447
+fit <- lm(TC08000305.hg.1~`AX-15964685` +age+race+sex +`AX-15964685`*diagnosis, data = merge_v3)
+plot_model(fit, type = "pred", terms = c("AX-15964685","diagnosis"))
+# 7   7 AX-11701696 TC18000998.hg.1 -5.196212 3.493176e-07 0.20825690 -0.14708963
+fit <- lm(TC18000998.hg.1~`AX-11701696` +age+race+sex +`AX-11701696`*diagnosis, data = merge_v3)
+plot_model(fit, type = "pred", terms = c("AX-11701696","diagnosis"))
+#fit <- lm(TC04001305.hg.1~`AX-14758778` +age+race+sex +`AX-14758778`*diagnosis, data = merge_v3) # The beta with this command is not same as MatrixEQTL function because diagnosis is factor here
+#lmodel = lm(TC04001305.hg.1~`AX-14758778` + cvrt.mat + `AX-14758778`*cvrt.mat[,4], data = merge_v3) ## The beta with this command is same because the diagnosis is not factor here
+#plotting
+# summary(lmodel)
+# lm(formula = TC04001305.hg.1 ~ `AX-14758778` + cvrt.mat + `AX-14758778` * 
+#     cvrt.mat[, 4], data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.8064 -0.3122 -0.0944  0.2065  7.3009 
+# 
+# Coefficients: (1 not defined because of singularities)
+#                              Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                  4.225558   0.269986  15.651  < 2e-16 ***
+# `AX-14758778`                1.729474   0.231276   7.478 6.44e-13 ***
+# cvrt.matsex                  0.014063   0.080626   0.174    0.862    
+# cvrt.matrace                 0.036018   0.030259   1.190    0.235    
+# cvrt.matage                  0.002444   0.002885   0.847    0.398    
+# cvrt.matdiagnosis            0.013258   0.027731   0.478    0.633    
+# cvrt.mat[, 4]                      NA         NA      NA       NA    
+# `AX-14758778`:cvrt.mat[, 4] -0.451942   0.075903  -5.954 6.50e-09 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7119 on 341 degrees of freedom
+#   (3 observations deleted due to missingness)
+# Multiple R-squared:  0.1494,	Adjusted R-squared:  0.1344 
+#F-statistic:  9.98 on 6 and 341 DF,  p-value: 3.696e-10
+#plot_model(fit, type = "pred", terms = c("AX-14758778","diagnosis")) #this function predict the model 
+```
+
+```{r}
+#START
+#Try without running merge_v3$diagnosis <- to_factor(merge_v3$diagnosis)
+fit <- lm(TC04001305.hg.1~`AX-14758778` +age+race+sex+diagnosis +`AX-14758778`*diagnosis, data = merge_v3)
+summary (fit)
+# Call:
+# lm(formula = TC04001305.hg.1 ~ `AX-14758778` + age + race + sex + 
+#     diagnosis + `AX-14758778` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.8064 -0.3122 -0.0944  0.2065  7.3009 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              4.225558   0.269986  15.651  < 2e-16 ***
+# `AX-14758778`            1.729474   0.231276   7.478 6.44e-13 ***
+# age                      0.002444   0.002885   0.847    0.398    
+# race                     0.036018   0.030259   1.190    0.235    
+# sex                      0.014063   0.080626   0.174    0.862    
+# diagnosis                0.013258   0.027731   0.478    0.633    
+# `AX-14758778`:diagnosis -0.451942   0.075903  -5.954 6.50e-09 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7119 on 341 degrees of freedom
+#   (3 observations deleted due to missingness)
+# Multiple R-squared:  0.1494,	Adjusted R-squared:  0.1344 
+# F-statistic:  9.98 on 6 and 341 DF,  p-value: 3.696e-10
+plot_model(fit, type = "pred", terms = c("AX-14758778","diagnosis"))
+```
+
+
+
+```{r}
+#check the plot for one significant SNP-gene pair from eQTL_dist_1e6
+
+#plot exact point
+#devtools::install_github("hadley/devtools")
+#library(devtools)
+#install_github("kassambara/easyGgplot2")
+#library("ggplot2")
+#library("easyGgplot2") do not this library for now
+```
+
+```{r}
+#   X        snps            gene statistic       pvalue        FDR        beta
+# 1   1 AX-14758778 TC04001305.hg.1 -5.985654 5.417431e-09 0.02260843 -0.45290434
+#merge_v3$`AX-14758778`  
+# 0   1   2 NA
+# 312  33   3 3
+
+x <-merge_v3[!is.na(merge_v3$'AX-14758778'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC04001305, x = as.factor(x$`AX-14758778`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p1 + labs(title = "cis-eQTL", y="CXCL10 expression", x = "rs78046578 genotype")
+
+```
+
+
+
+```{r}
+#to see the scatterplot for each SNP-gene pairs
+p <- ggplot(merge_v3, aes(x=merge_v3$`AX-14758778`, y =merge_v3$TC04001305, color = diagnosis))+
+  geom_boxplot()
+
+p1 <- ggplot(data = merge_v3, aes(x=merge_v3$`AX-14758778`, y=merge_v3$TC04001305)) + geom_point(aes(colour =factor (merge_v3$diagnosis))) 
+p1 <- ggplot(data = merge_v3, aes(x=merge_v3$`AX-14758778`, color = merge_v3$diagnosis, group=merge_v3$diagnosis)) + geom_point(aes(y=merge_v3$TC04001305), alpha =0.5)
+
+#to see reg line for all sample
+reg1<-lm(TC04001305.hg.1~`AX-14758778`, data = merge_v3)
+with(merge_v3,plot(as.factor(`AX-14758778`),TC04001305.hg.1))
+abline(reg1)
+#again scatterplot
+ggplot(x,aes(x=as.factor(x$`AX-14758778`), y=x$TC04001305), shape =as.factor(diagnosis)) +
+    geom_point(aes(colour = as.factor(diagnosis)))
+    
+```
+
+
+```{r}
+#scatterplot with drawing line "http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization"
+p1 <- ggplot(x, aes(x=x$`AX-14758778`, y=x$TC04001305, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
+  geom_point(aes(size=as.factor(diagnosis))) + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_shape_manual(values=c(3, 16, 17))+ 
+  scale_color_manual(values=c('#999999','#E69F00', '#56B4E9'))+
+  scale_size_manual(values=c(2,3,4))+
+  theme(legend.position="top")
+p1 + labs(title = "cis-eQTL", y="CXCL10 expression", x = "rs78046578 genotype")
+```
+
+
+```{r}
+# 2   2 AX-40592209 TC20001033.hg.1 -5.631148 3.723028e-08 0.06760264 -0.06751612
+fit <- lm(TC20001033.hg.1~`AX-40592209` +age+race+sex +`AX-40592209`*diagnosis, data = merge_v3)
+plot_model(fit, type = "pred", terms = c("AX-40592209","diagnosis"), axis.title = c("rs12480811 genotype","PTK6 expression"),axis.labels = c("rs12480811 genotype","PTK6 expression"))
+
+#merge_v3$`AX-40592209`  
+# 0   1   2 
+# 2  48   301 
+plot(as.factor(merge_v3$`AX-40592209`),merge_v3$TC20001033.hg.1) # to see plot for all samples
+ggplot(data = merge_v3, aes(x=as.factor(merge_v3$`AX-40592209`), y=merge_v3$TC20001033.hg.)) +    geom_point(shape=1) +  geom_smooth(method=lm , color="red", se=FALSE) #to see scatterplot for all samples
+
+p1 <-ggplot(aes(y = merge_v3$TC20001033.hg.1, x = as.factor(merge_v3$`AX-40592209`), fill = as.factor(merge_v3$diagnosis)), data =merge_v3, xlim(c(0,1,2))) + geom_boxplot()
+p1 + labs(title = "cis-eQTL", y="PTK6 expression", x = "rs12480811 genotype")
+```
+
+```{r}
+#scatterplot with drawing line
+p1 <- ggplot(merge_v3, aes(x=merge_v3$`AX-40592209`, y=merge_v3$TC20001033.hg.1, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
+  geom_point(aes(size=as.factor(diagnosis))) + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_shape_manual(values=c(3, 16, 17))+ 
+  scale_color_manual(values=c('#999999','#E69F00', '#56B4E9'))+
+  scale_size_manual(values=c(2,3,4))+
+  theme(legend.position="top")
+p1 + labs(title = "cis-eQTL", y="PTK6 expression", x = "rs17712238 genotype")
+```
+
+```{r}
+#   X        snps            gene statistic       pvalue        FDR        beta
+#3   3 AX-11336441 TC02001095.hg.1  5.580785 4.859682e-08 0.06760264  0.09543061
+#merge_v3$`AX-11336441`  
+  # 0   1   2 
+  # 3  38 310
+fit <- lm(TC02001095.hg.1~`AX-11336441` +age+race+sex+diagnosis +`AX-11336441`*diagnosis, data = merge_v3)
+# summary (fit)
+# Call:
+# lm(formula = TC02001095.hg.1 ~ `AX-11336441` + age + race + sex + 
+#     diagnosis + `AX-11336441` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.44356 -0.09706 -0.01818  0.06927  1.19661 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              5.1103028  0.1222451  41.804  < 2e-16 ***
+# `AX-11336441`           -0.3488233  0.0552303  -6.316 8.31e-10 ***
+# age                      0.0009570  0.0006626   1.444    0.150    
+# race                     0.0059026  0.0069812   0.846    0.398    
+# sex                      0.0003352  0.0183888   0.018    0.985    
+# diagnosis               -0.2018213  0.0327035  -6.171 1.91e-09 ***
+# `AX-11336441`:diagnosis  0.0954306  0.0170999   5.581 4.86e-08 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1646 on 344 degrees of freedom
+# Multiple R-squared:  0.1395,	Adjusted R-squared:  0.1245 
+# F-statistic: 9.297 on 6 and 344 DF,  p-value: 1.874e-09
+
+plot_model(fit, type = "pred", terms = c("AX-11336441","diagnosis"),axis.title = c("rs17712238 genotype","ZNF804A expression"), axis.labels = c("rs17712238 genotype","ZNF804A expression"))
+```
+
+```{r}
+p1 <-ggplot(aes(y = merge_v3$TC02001095.hg.1, x = as.factor(merge_v3$`AX-11336441`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+p1 + labs(title = "cis-eQTL", y="ZNF804A expression", x = "rs17712238 genotype")
+
+```
+
+
+
+```{r}
+#scatterplot with drawing line 
+p1 <- ggplot(merge_v3, aes(x = merge_v3$`AX-11336441`, y=merge_v3$TC02001095.hg.1, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
+  geom_point(aes(size=as.factor(diagnosis))) + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_shape_manual(values=c(3, 16, 17))+ 
+  scale_color_manual(values=c('#999999','#E69F00', '#56B4E9'))+
+  scale_size_manual(values=c(2,3,4))+
+  theme(legend.position="top")
+p1 + labs(title = "cis-eQTL", y="ZNF804A expression", x = "rs17712238 genotype")
+
+```
+
+
+```{r}
+# 4   4 AX-29907155 TC11001143.hg.1  5.452492 9.499488e-08 0.09910994  0.25824924
+merge_v3$`AX-29907155`)
+#0   1   2 
+#19 118 214 
+
+fit <- lm(TC11001143.hg.1~`AX-29907155` +age+race+sex +`AX-29907155`*diagnosis, data = merge_v3)
+summary(fit)
+# Call:
+# lm(formula = TC11001143.hg.1 ~ `AX-29907155` + age + race + sex + 
+#     `AX-29907155` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -1.97039 -0.50962 -0.06581  0.35667  3.13849 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              8.384963   0.348192  24.081  < 2e-16 ***
+# `AX-29907155`           -0.632831   0.131633  -4.808 2.29e-06 ***
+# age                      0.003736   0.003153   1.185   0.2368    
+# race                    -0.040871   0.033232  -1.230   0.2196    
+# sex                      0.159699   0.087495   1.825   0.0688 .  
+# diagnosis               -0.348016   0.079243  -4.392 1.50e-05 ***
+# `AX-29907155`:diagnosis  0.258249   0.047364   5.452 9.50e-08 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7844 on 344 degrees of freedom
+# Multiple R-squared:  0.1071,	Adjusted R-squared:  0.09157 
+# F-statistic:  6.88 on 6 and 344 DF,  p-value: 6.515e-07
+
+plot_model(fit, type = "pred", terms = c("AX-29907155","diagnosis"),axis.title = c("rs56348411 genotype","NRGN expression"), axis.labels = c("rs56348411 genotype","NRGN expression"))
+
+```
+
+```{r}
+p1 <-ggplot(aes(y = merge_v3$TC11001143.hg.1, x = as.factor(merge_v3$`AX-29907155`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+p1 + labs(title = "cis-eQTL", y="NRGN expression", x = "rs56348411 genotype")
+
+```
+
+
+
+```{r}
+#scatterplot with drawing line 
+p1 <- ggplot(merge_v3, aes(x = merge_v3$`AX-11336441`, y=merge_v3$TC02001095.hg.1, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
+  geom_point(aes(size=as.factor(diagnosis))) + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_shape_manual(values=c(3, 16, 17))+ 
+  scale_color_manual(values=c('#999999','#E69F00', '#56B4E9'))+
+  scale_size_manual(values=c(2,3,4))+
+  theme(legend.position="top")
+p1 + labs(title = "cis-eQTL", y="ZNF804A expression", x = "rs17712238 genotype")
+
+```
+
+```{r}
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/eQTL_trans_1e6.csv", row.names=1)
+#AX-35207585 TC03002054.hg.1 -7.001953 1.331282e-11 4.934046e-03 -0.35400376
+fit <- lm(TC03002054.hg.1~`AX-35207585` +age+race+sex+diagnosis +`AX-35207585`*diagnosis, data = merge_v3)
+plot_model(fit, type = "pred", terms = c("AX-35207585","diagnosis"))
+#AX-12869101 TC03000801.hg.1  6.704439 8.302696e-11 1.538588e-02  0.39215365
+fit <- lm(TC03000801.hg.1~`AX-12869101` +age+race+sex+diagnosis +`AX-12869101`*diagnosis, data = merge_v3)
+plot_model(fit, type = "pred", terms = c("AX-12869101","diagnosis"))
+```
+
 

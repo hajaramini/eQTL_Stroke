@@ -352,6 +352,7 @@ plot(eQTL)
 dev.off()
 ```
 
+
 ```{r}
 write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_cis_dist_1e6.csv")
 write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/sex/eQTL_trans_1e6.csv")
