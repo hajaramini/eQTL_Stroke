@@ -1,0 +1,59 @@
+---
+title: "eQTL_Stroke_MatrixEQTL_mRNA_ModelLINEAR_050319"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#all inputs used in this script same as final version with protein-coding genes to have eQTL with ModelLINEAR
+#snps 273688 351
+#gene 20328   351
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_NO_Subtype.txt", sep="")
+```
+
+```{r}
+# Load covariates
+cvrt = SlicedData$new();
+cvrt$fileDelimiter = "\t"      # the TAB character
+cvrt$fileOmitCharacters = "NA" # denote missing values;
+cvrt$fileSkipRows = 1         # one row of column labels
+cvrt$fileSkipColumns = 1      # one column of row labels
+if(length(covariates_file_name)>0) {
+cvrt$LoadFile(covariates_file_name)
+}
+#Rows read: 7 done. correct
+```
+
+
+```{r}
+useModel =  modelLINEAR
+cisDist = 1e6
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_tra,
+pvOutputThreshold = 1e-10,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, 
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = 1e-8,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot",
+min.pv.by.genesnp = FALSE,
+noFDRsaveMemory = FALSE)
+
+unlink(output_file_name_tra);
+unlink(output_file_name_cis);
+```
+```{r}
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR//eQTL_cis_1e6_small.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR/eQTL_trans_1e6_small.csv")
+```
