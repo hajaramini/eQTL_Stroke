@@ -236,3 +236,12 @@ expression_file_name = paste(base.dir, "/Input_Output/GE_batch_corrected.txt", s
 covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
 ```
 
+```{r}
+#to check the hypertension, diabates and other clinical information of the 351 samples
+CTSC0218BloodGenomic_DATA_20190430_1256 <- read.csv("C:/eQTL/Primary_Files/CTSC0218BloodGenomic_DATA_20190430_1256.csv" , row.names = 1) # change the "UCDSSTourette's.TSFS623CT" to  "UCDSSTourettes"
+#add the dot"." in samples ID the final version is under "CTSC0218BloodGenomic_DATA_20190430_1256.v2.txt" name 
+Covariates_Final <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final.txt", row.names = 1)
+merge <- test_v3[colnames(Covariates_Final),]
+write.table(merge,file = "../../../Primary_Files/CTSC0218BloodGenomic_DATA_20190430_351.txt", sep = "\t") 
+```
+

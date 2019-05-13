@@ -973,7 +973,7 @@ p2 <- p1 + labs(title = "cis-eQTL", y="IDO1 expression", x = "rs72639679 genotyp
 
 ```{r}
 #scatterplot with drawing line 
-p1 <- ggplot(merge_v3, aes(x = merge_v3$`AX-15964685`, y=merge_v3$TC08000305.hg.1, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
+p1 <- ggplot(x, aes(x = x$`AX-15964685`, y=x$TC08000305.hg.1, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
   geom_point(aes(size=as.factor(diagnosis))) + 
   geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
   scale_shape_manual(values=c(3, 16, 17))+ 
@@ -1203,9 +1203,6 @@ p2<- p+ labs(title = "cis-eQTL", y="LAMP3 expression", x= "rs77696886 genotype")
 ```
 
 
-#AX-12869101 TC03000801.hg.1  6.704439 8.302696e-11 1.538588e-02  0.39215365
-fit <- lm(TC03000801.hg.1~`AX-12869101` +age+race+sex+diagnosis +`AX-12869101`*diagnosis, data = merge_v3)
-
 
 ```{r}
 #AX-12869101 TC03000801.hg.1  6.704439 8.302696e-11 1.538588e-02  0.39215365
@@ -1216,29 +1213,8 @@ merge_v3$`AX-12869101`
 #0   1   2   
 #2  37  312 
 
-# Call:
-# lm(formula = TC03000801.hg.1 ~ `AX-12869101` + age + race + sex + 
-#     diagnosis + `AX-12869101` * diagnosis, data = merge_v3)
-# 
-# Residuals:
-#      Min       1Q   Median       3Q      Max 
-# -1.38882 -0.28958 -0.05152  0.17013  2.88096 
-# 
-# Coefficients:
-#                          Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)              9.837844   0.439894  22.364  < 2e-16 ***
-# `AX-12869101`           -1.483991   0.191805  -7.737 1.14e-13 ***
-# age                      0.007048   0.002151   3.277  0.00116 ** 
-# race                     0.059176   0.022601   2.618  0.00923 ** 
-# sex                      0.007334   0.059259   0.124  0.90157    
-# diagnosis               -0.823539   0.112446  -7.324 1.72e-12 ***
-# `AX-12869101`:diagnosis  0.392154   0.058492   6.704 8.30e-11 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.5312 on 344 degrees of freedom
-# Multiple R-squared:  0.2366,	Adjusted R-squared:  0.2233 
-# F-statistic: 17.77 on 6 and 344 DF,  p-value: < 2.2e-16
+
+
 plot_model(fit, type = "pred", terms = c("AX-12869101","diagnosis"),axis.title = c("rs8003997 genotype","GYG1 expression"), axis.labels = c("rs8003997 genotype","GYG1 expression"))
 
 ```
@@ -1289,4 +1265,87 @@ p<- ggplot(df, aes(x=df$`AX-12869101`, y=df$TC03000801.hg.1, group=df$diagnosis,
 geom_line(aes(group=df$diagnosis))+
 geom_errorbar(aes(ymin=TC03000801.hg.1-sd, ymax=TC03000801.hg.1+sd),width=.2)
 p2<- p+ labs(title = "cis-eQTL", y="GYG1 expression", x= "rs8003997 genotype")
+```
+
+```{r}
+#since demographic variables for ischemic stroke (IS) and vascular risk factor control (VRFC) patients are significant, add these variables into model and redo analysis
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", sep="")
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location_Exclude_Weird_Position.txt", sep="")
+snps_location_file_name = paste(base.dir, "/Input_Output/SNP_Location.txt", sep="") #include all SNPs location
+expression_file_name = paste(base.dir, "/Input_Output/GE_mRNA_19309.txt", sep="") #only coding gene
+#check different covariate matrix
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_NO_Subtype.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC_NO_Subtype.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_NO_Batch.txt", sep="") # new subdiagnosis
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_Race_NO_PC.txt", sep="")
+```
+
+```{r}
+#load genotype data 273688
+#load exp data 65988 for all genes and 19309 for only protein-coding genes
+#load covariate data 
+```
+
+
+```{r}
+useModel =  modelLINEAR_CROSS
+cisDist = 1e6
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_tra,
+pvOutputThreshold = 1e-10,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, 
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = 1e-5,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot",
+min.pv.by.genesnp = FALSE,
+noFDRsaveMemory = FALSE)
+
+unlink(output_file_name_tra);
+unlink(output_file_name_cis);
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv")
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv")
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv") # highest number of eQTL pass FDR here
+```
+
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_pc1_pc2_pc3_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_pc1_pc2_pc3_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv") # highest number of eQTL pass FDR here
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_sex_race_age_pc1_pc2_pc3_hypertension_diabates_cholestrolemia_diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_sex_race_age_pc1_pc2_pc3_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_1e6.csv") # highest number of eQTL pass FDR here
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv") # highest number of eQTL pass FDR here
 ```
