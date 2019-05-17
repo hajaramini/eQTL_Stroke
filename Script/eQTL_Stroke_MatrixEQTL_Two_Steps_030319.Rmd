@@ -109,6 +109,7 @@ if(length(covariates_file_name)>0) {
 cvrt$LoadFile(covariates_file_name)
 }
 #Rows read: 4 done. correct
+
 ```
 
 ```{r}

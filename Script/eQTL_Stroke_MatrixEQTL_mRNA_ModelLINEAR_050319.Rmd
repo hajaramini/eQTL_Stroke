@@ -53,7 +53,8 @@ noFDRsaveMemory = FALSE)
 unlink(output_file_name_tra);
 unlink(output_file_name_cis);
 ```
+
 ```{r}
-write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR//eQTL_cis_1e6_small.csv")
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR/eQTL_cis_1e6_small.csv") #This updated with final version of covariate matrix
 write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR/eQTL_trans_1e6_small.csv")
 ```

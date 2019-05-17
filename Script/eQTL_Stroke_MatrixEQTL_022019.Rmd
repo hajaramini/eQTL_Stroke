@@ -45,7 +45,8 @@ write.table(SNP_after_filter, file = "../../Input_Output/SNP_CRmore99_MAFmore0.0
 
 ```{r}
 SNP_file_name = paste(base.dir, "/Input_Output/SNP_CRmore99_MAFmore0.05.txt", sep="")
-#SNP_file_name = paste(base.dir, "/Input_Output/SNP.txt", sep="")
+#SNP_
+file_name = paste(base.dir, "/Input_Output/SNP.txt", sep="")
 expression_file_name = paste(base.dir, "/Input_Output/GE.txt", sep="") 
 #covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final.txt", sep="") #need sample as colnames
 #covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="")
@@ -66,7 +67,7 @@ expression_file_name = paste(base.dir, "/Input_Output/GE_Exclude_Weird_Position.
 
 ```{r}
 output_file_name_cis = tempfile()
-output_file_name_trans = tempfile()
+output_file_name_tra = tempfile()
 ```
 
 ```{r}

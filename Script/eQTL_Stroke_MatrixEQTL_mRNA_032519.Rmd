@@ -1328,7 +1328,64 @@ write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/co
 ```{r}
 #check for coding genes
 write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
-write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv") # highest number of eQTL pass FDR here
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv") # #corrected for last updated covariate matrix, the covariate matrix corrected for this analysis (after changing race coding)
+```
+
+```{r}
+#Standard errors for the estimates.
+eQTL$cis$eqtls$beta_se <- eQTL$cis$eqtls$beta / eQTL$cis$eqtls$statistic
+# eQTL$cis$eqtls$beta_se
+#  [1] 0.075854727 0.012066198 0.017297127 0.047162212 0.059563955 0.029166231
+#  [7] 0.010477433 0.024182143 0.008352869 0.032107944 0.010133248 0.009137178
+# [13] 0.028726676 0.009626007 0.039579878 0.010700809 0.007630901 0.009797138
+# [19] 0.024453765 0.014638791 0.005133608 0.040457040 0.008509307 0.043775565
+# [25] 0.017979140 0.007390872 0.009437438 0.032973273 0.007725246 0.023255304
+# [31] 0.021296291 0.007457942 0.068455040 0.028361994 0.010223230 0.039667200
+# [37] 0.031463367 0.031505299 0.007024834 0.007812243 0.006770492 0.008740375
+# [43] 0.008355497 0.011992802 0.010980923 0.009595175 0.005663774 0.010755003
+# [49] 0.013926929 0.013926873 0.062989805 0.006775567 0.098087008 0.013612401
+# [55] 0.023703287 0.008452552 0.032737538 0.020449920 0.021851710 0.008500891
+# [61] 0.037508396 0.010354264 0.048032828 0.035203528 0.038934214 0.010344384
+#[67] 0.016473400
+eQTL$trans$eqtls$beta_se <- eQTL$trans$eqtls$beta / eQTL$trans$eqtls$statistic
+# eQTL$trans$eqtls$beta_se
+#  [1] 0.02358744 0.01588290 0.01415431 0.01808981 0.02472100 0.02007244
+#  [7] 0.02914444 0.02744014 0.02459031 0.03709459 0.03906363 0.01646312
+# [13] 0.03473560 0.03937634 0.04050171 0.02435498 0.01738336 0.01513311
+# [19] 0.05060625 0.01444129 0.01962192 0.03692866 0.02943508 0.03643836
+# [25] 0.01404486 0.03407944 0.03987007 0.01552397 0.02997063
+```
+
+```{r}
+#Raw correlations from which Matrix eQTL calculates t-statistics and p-values.
+dfFull = eQTL$param$dfFull
+tstat = eQTL$cis$eqtls$statistic
+r = tstat / sqrt( dfFull + tstat^2 )
+R2 = r^2
+#  R2
+#  [1] 0.09510262 0.08511459 0.07968084 0.07945413 0.07434535 0.07420156
+#  [7] 0.07087332 0.07017246 0.06962320 0.06949803 0.06932230 0.06912241
+# [13] 0.06903879 0.06726197 0.06698603 0.06634255 0.06627773 0.06584486
+# [19] 0.06472357 0.06456517 0.06395140 0.06380791 0.06297481 0.06215805
+# [25] 0.06208506 0.06185348 0.06176478 0.06158587 0.06147160 0.06138077
+# [31] 0.06109520 0.06102370 0.06074230 0.06050882 0.06041129 0.06040314
+# [37] 0.06032564 0.06011694 0.05997462 0.05994304 0.05981198 0.05962986
+# [43] 0.05955519 0.05919489 0.05918110 0.05916915 0.05901745 0.05851090
+# [49] 0.05809745 0.05805584 0.05804623 0.05787786 0.05782754 0.05758840
+# [55] 0.05718037 0.05717668 0.05711226 0.05711130 0.05693809 0.05692471
+# [61] 0.05686321 0.05666130 0.05657320 0.05652570 0.05606978 0.05597175
+# [67] 0.05590293
+
+dfFull = eQTL$param$dfFull
+tstat = eQTL$trans$eqtls$statistic
+r = tstat / sqrt( dfFull + tstat^2 )
+R2 = r^2
+#  R2
+#  [1] 0.2777432 0.1505736 0.1472243 0.1432146 0.1410028 0.1370104 0.1359646
+#  [8] 0.1354437 0.1352983 0.1334349 0.1325515 0.1301655 0.1253817 0.1250485
+# [15] 0.1244907 0.1242009 0.1214836 0.1211350 0.1206759 0.1199084 0.1197227
+# [22] 0.1184184 0.1183419 0.1179460 0.1167708 0.1166493 0.1164784 0.1163501
+# [29] 0.1160688
 ```
 
 
@@ -1349,3 +1406,266 @@ write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/co
 write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_cis_dist_1e6.csv")
 write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_age_hypertension_diabates_cholestrolemia _diagnosis/eQTL_trans_1e6.csv") # highest number of eQTL pass FDR here
 ```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_cis_dist_1e6.csv")
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #67
+
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#67
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_cis_dist_1e6_merge.csv") #corrected for last updated covariate matrix
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #29
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#29
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_1e6_merge.csv") #corrected for last updated covariate matrix
+```
+
+```{r}
+#updated merge_v3 for this analysis, additional varibales should be added as a row in covariate matrix
+
+#SNP_CRmore95_MAFmore0.05_HWEmore0.0000005 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", row.names=1)
+#View(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005)
+SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t <- t(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005)
+#dim(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#Covariates_Final_NO_PC <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final_NO_PC.txt", row.names=1)
+#View(Covariates_Final_NO_PC)
+Covariates_Final_NO_PC_t <-t(Covariates_Final_NO_PC)
+#GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_mRNA_19309.txt", row.names=1)
+GE_mRNA_19309_t <-t(GE_mRNA_19309)
+#class(GE_mRNA_19309_t)
+merge <- cbind(GE_mRNA_19309_t,SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#dim(merge)
+#dim(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_t)
+#dim(GE_mRNA_19309_t) 273688 + 19309
+merge_v2 <- cbind(merge,Covariates_Final_NO_PC_t)
+#dim(merge_v2) #final dataset  351 293005
+merge_v3 <- as.data.frame(merge_v2)
+save(merge_v3, file = "../../Input_Output/RData/merge_final.RData")
+```
+
+```{r}
+#Try without running merge_v3$diagnosis <- to_factor(merge_v3$diagnosis)
+#          snps            gene statistic       pvalue        FDR        beta
+#1  AX-14758778 TC04001305.hg.1 -5.977727 5.719097e-09 0.02386736 -0.45343881
+fit <- lm(TC04001305.hg.1~`AX-14758778` +age+race+sex+diagnosis+historyhypertension +historydiabetesmellitus+historyhypercholestrolemia+diagnosissubtype +`AX-14758778`*diagnosis, data = merge_v3)
+summary (fit)
+# Call:
+# lm(formula = TC04001305.hg.1 ~ `AX-14758778` + age + race + sex + 
+#     diagnosis + historyhypertension + historydiabetesmellitus + 
+#     historyhypercholestrolemia + diagnosissubtype + `AX-14758778` * 
+#     diagnosis, data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.8468 -0.3359 -0.0773  0.2357  7.0694 
+# 
+# Coefficients:
+#                              Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 4.2958432  0.2807849  15.299  < 2e-16 ***
+# `AX-14758778`               1.7522919  0.2314126   7.572 3.56e-13 ***
+# age                         0.0003242  0.0031125   0.104   0.9171    
+# race                        0.0370903  0.0299812   1.237   0.2169    
+# sex                         0.0132518  0.0807882   0.164   0.8698    
+# diagnosis                   0.0514983  0.0742076   0.694   0.4882    
+# historyhypertension         0.1638475  0.0905787   1.809   0.0714 .  
+# historydiabetesmellitus    -0.2215654  0.0950071  -2.332   0.0203 *  
+# historyhypercholestrolemia  0.0694459  0.0841493   0.825   0.4098    
+# diagnosissubtype           -0.0231168  0.0413524  -0.559   0.5765    
+# `AX-14758778`:diagnosis    -0.4525145  0.0761100  -5.946 6.89e-09 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7068 on 337 degrees of freedom
+#   (3 observations deleted due to missingness)
+# Multiple R-squared:  0.1713,	Adjusted R-squared:  0.1467 
+# F-statistic: 6.967 on 10 and 337 DF,  p-value: 6.101e-10
+plot_model(fit, type = "pred", terms = c("AX-14758778","diagnosis"))
+```
+
+
+
+```{r}
+#check the plot for one significant SNP-gene pair from eQTL_dist_1e6
+
+#plot exact point
+#devtools::install_github("hadley/devtools")
+#library(devtools)
+#install_github("kassambara/easyGgplot2")
+#library("ggplot2")
+#library("easyGgplot2") do not this library for now
+```
+
+```{r}
+#   X        snps            gene statistic       pvalue        FDR        beta
+# 1   1 AX-14758778 TC04001305.hg.1 -5.985654 5.417431e-09 0.02260843 -0.45290434
+#merge_v3$`AX-14758778`  
+# 0   1   2 NA
+# 312  33   3 3
+
+x <-merge_v3[!is.na(merge_v3$'AX-14758778'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC04001305, x = as.factor(x$`AX-14758778`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p1 + labs(title = "cis-eQTL", y="CXCL10 expression", x = "rs78046578 genotype")
+
+```
+
+
+
+```{r}
+#to see the scatterplot for each SNP-gene pairs
+p <- ggplot(merge_v3, aes(x=merge_v3$`AX-14758778`, y =merge_v3$TC04001305, color = diagnosis))+
+  geom_boxplot()
+
+p1 <- ggplot(data = merge_v3, aes(x=merge_v3$`AX-14758778`, y=merge_v3$TC04001305)) + geom_point(aes(colour =factor (merge_v3$diagnosis))) 
+p1 <- ggplot(data = merge_v3, aes(x=merge_v3$`AX-14758778`, color = merge_v3$diagnosis, group=merge_v3$diagnosis)) + geom_point(aes(y=merge_v3$TC04001305), alpha =0.5)
+
+#to see reg line for all sample
+reg1<-lm(TC04001305.hg.1~`AX-14758778`, data = merge_v3)
+with(merge_v3,plot(as.factor(`AX-14758778`),TC04001305.hg.1))
+abline(reg1)
+#again scatterplot
+ggplot(x,aes(x=as.factor(x$`AX-14758778`), y=x$TC04001305), shape =as.factor(diagnosis)) +
+    geom_point(aes(colour = as.factor(diagnosis)))
+```
+
+```{r}
+#scatterplot with drawing line "http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization"
+p1 <- ggplot(x, aes(x=x$`AX-14758778`, y=x$TC04001305.hg.1, color=as.factor(diagnosis), shape=as.factor(diagnosis)))+
+  geom_point(aes(size=as.factor(diagnosis))) + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_shape_manual(values=c(3, 16, 17))+ 
+  scale_color_manual(values=c('#999999','#E69F00', '#56B4E9'))+
+  scale_size_manual(values=c(2,3,4))+
+  theme(legend.position="top")
+p1 + labs(title = "cis-eQTL", y="CXCL10 expression", x = "rs78046578 genotype")
+```
+
+
+```{r}
+#function for having error bar for different groups
+
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+```
+
+
+```{r}
+#for merge_v3 data
+#merge_v3$diagnosis <- as.factor(merge_v3$diagnosis)
+df <-data_summary(x,varname = "TC04001305.hg.1", groupnames =c("diagnosis","`AX-14758778`")) #Na in sd is due to small number of samples in that case, so we could see the NA
+# Convert genotype to a factor variable
+df$`AX-14758778` <- as.factor(df$`AX-14758778`)
+```
+
+```{r}
+#Barplot with error bars
+p<- ggplot(df, aes(x=df$`AX-14758778`, y=df$TC04001305.hg.1, fill=df$diagnosis)) + 
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=TC04001305.hg.1-sd, ymax=TC04001305.hg.1+sd), width=.2,
+                 position=position_dodge(.9)) 
+
+p2<-p+ labs(title = "cis-eQTL", y="CXCL10 expression", x = "rs78046578 genotype")
+```
+
+```{r}
+#scatterplot with error bars
+p<- ggplot(df, aes(x=df$`AX-14758778`, y=df$TC04001305.hg.1, group=df$diagnosis, color =df$diagnosis))+
+geom_line(aes(group=df$diagnosis))+
+geom_errorbar(aes(ymin=TC04001305.hg.1-sd, ymax=TC04001305.hg.1+sd),width=.2)
+p2<- p+ labs(title = "cis-eQTL", y="CXCL10 expression", x= "rs78046578 genotype")
+
+```
+
+
+```{r}
+#Try without running merge_v3$diagnosis <- to_factor(merge_v3$diagnosis)
+#          snps            gene statistic       pvalue        FDR        beta
+#2  AX-40592209 TC20001033.hg.1 -5.624166 3.894929e-08 0.08127305 -0.06786230
+fit <- lm(TC20001033.hg.1~`AX-40592209` +age+race+sex+diagnosis+historyhypertension +historydiabetesmellitus+historyhypercholestrolemia+diagnosissubtype +`AX-40592209`*diagnosis, data = merge_v3)
+summary (fit)
+# Call:
+# lm(formula = TC20001033.hg.1 ~ `AX-40592209` + age + race + sex + 
+#     diagnosis + historyhypertension + historydiabetesmellitus + 
+#     historyhypercholestrolemia + diagnosissubtype + `AX-40592209` * 
+#     diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.34439 -0.08239 -0.01746  0.08080  0.58921 
+# 
+# Coefficients:
+#                              Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 5.1214672  0.0794586  64.455  < 2e-16 ***
+# `AX-40592209`               0.1156792  0.0341456   3.388 0.000787 ***
+# age                         0.0005837  0.0005423   1.076 0.282595    
+# race                        0.0085822  0.0052564   1.633 0.103455    
+# sex                         0.0248181  0.0141710   1.751 0.080791 .  
+# diagnosis                   0.1313776  0.0262676   5.002 9.13e-07 ***
+# historyhypertension        -0.0013833  0.0158859  -0.087 0.930660    
+# historydiabetesmellitus    -0.0300203  0.0166762  -1.800 0.072716 .  
+# historyhypercholestrolemia  0.0023073  0.0148082   0.156 0.876271    
+# diagnosissubtype           -0.0027488  0.0072555  -0.379 0.705028    
+# `AX-40592209`:diagnosis    -0.0678623  0.0120662  -5.624 3.89e-08 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1245 on 340 degrees of freedom
+# Multiple R-squared:  0.1265,	Adjusted R-squared:  0.1008 
+# F-statistic: 4.924 on 10 and 340 DF,  p-value: 1.154e-06
+```
+
+```{r}
+#Try without running merge_v3$diagnosis <- to_factor(merge_v3$diagnosis)
+#          snps            gene statistic       pvalue        FDR        beta
+#3  AX-11336441 TC02001095.hg.1  5.425593 1.099361e-07 0.11976284  0.09384717
+fit <- lm(TC02001095.hg.1~`AX-11336441` +age+race+sex+diagnosis+historyhypertension +historydiabetesmellitus+historyhypercholestrolemia+diagnosissubtype +`AX-11336441`*diagnosis, data = merge_v3)
+summary (fit)
+
+# Call:
+# lm(formula = TC02001095.hg.1 ~ `AX-11336441` + age + race + sex + 
+#     diagnosis + historyhypertension + historydiabetesmellitus + 
+#     historyhypercholestrolemia + diagnosissubtype + `AX-11336441` * 
+#     diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.44424 -0.09503 -0.02709  0.07378  1.18019 
+# 
+# Coefficients:
+#                              Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 5.1031951  0.1234103  41.351  < 2e-16 ***
+# `AX-11336441`              -0.3459965  0.0556597  -6.216 1.49e-09 ***
+# age                         0.0009954  0.0007215   1.380    0.169    
+# race                        0.0067030  0.0069730   0.961    0.337    
+# sex                        -0.0024119  0.0186376  -0.129    0.897    
+# diagnosis                  -0.1909470  0.0363247  -5.257 2.60e-07 ***
+# historyhypertension         0.0176967  0.0213655   0.828    0.408    
+# historydiabetesmellitus    -0.0104799  0.0221402  -0.473    0.636    
+# historyhypercholestrolemia -0.0117846  0.0195947  -0.601    0.548    
+# diagnosissubtype           -0.0044340  0.0096043  -0.462    0.645    
+# `AX-11336441`:diagnosis     0.0938472  0.0172971   5.426 1.10e-07 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1651 on 340 degrees of freedom
+# Multiple R-squared:  0.1441,	Adjusted R-squared:  0.1189 
+# F-statistic: 5.724 on 10 and 340 DF,  p-value: 5.981e-08
+```
+
+

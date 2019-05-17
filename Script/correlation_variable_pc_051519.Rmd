@@ -1,0 +1,76 @@
+---
+title: "correlation_variable_pc_051519"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#want to see the correlation between variables and three first pcs, I used this link to get corr between categorical and continuous variables "https://rpubs.com/juanhklopper/biserial_correlation"
+
+#For a dichotomous categorical variable and a continuous variable you can calculate a Pearson correlation if the categorical variable has a 0/1-coding for the categories. This correlation is then also known as a point-biserial correlation coefficient. But when you have more than two categories for the categorical variable the Pearson correlation is not appropriate anymore. You should then use eta-squared, or eta, as an effect-size measure for the relationship of a categorical variable and a continuous variable. 
+```{r}
+load("../Input_Output/RData/merge_final.RData")
+SNP_PC1_PC2_PC3_Plink_v2 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_PC1_PC2_PC3_Plink_v2.txt", row.names=1)
+#install.packages("polycor")
+#library("polycor")
+polyserial(merge_v3$historydiabetesmellitus,SNP_PC1_PC2_PC3_Plink_v2) # check for sex, historyhypertension, historydiabetesmellitus and  historyhypercholestrolemi, the sum r for these three pcs with these variables are more than 15%
+merge_v3_categorical_variables <- merge_v3[,c(292999,293000,293002,293003,293004,293005)] #categorical variables
+cor <- polyserial(merge_v3_categorical_variables$sex,SNP_PC1_PC2_PC3_Plink_v2$PC1) # -0.1028759
+cor <- polyserial(merge_v3_categorical_variables$sex,SNP_PC1_PC2_PC3_Plink_v2$PC2) #-0.02800927
+cor <- polyserial(merge_v3_categorical_variables$sex,SNP_PC1_PC2_PC3_Plink_v2$PC3) # -0.06754498
+#0.10*100+0.02*100+0.06*100=18
+cor <- polyserial(merge_v3_categorical_variables$historyhypertension,SNP_PC1_PC2_PC3_Plink_v2$PC1) # 0.08958846
+cor <- polyserial(merge_v3_categorical_variables$historyhypertension,SNP_PC1_PC2_PC3_Plink_v2$PC2) # -0.03533174
+cor <- polyserial(merge_v3_categorical_variables$historyhypertension,SNP_PC1_PC2_PC3_Plink_v2$PC3) # 0.0854686
+#0.08958846*100+0.03533174*100+0.0854686*100= 21
+cor <- polyserial(merge_v3_categorical_variables$historydiabetesmellitus,SNP_PC1_PC2_PC3_Plink_v2$PC1) # 0.1225268
+cor <- polyserial(merge_v3_categorical_variables$historydiabetesmellitus,SNP_PC1_PC2_PC3_Plink_v2$PC2) # -0.03719701
+cor <- polyserial(merge_v3_categorical_variables$historydiabetesmellitus,SNP_PC1_PC2_PC3_Plink_v2$PC3) # -0.002408439
+#0.1225268*100+0.03719701*100+0.002408439*100 = 16.21322
+cor <- polyserial(merge_v3_categorical_variables$historyhypercholestrolemia,SNP_PC1_PC2_PC3_Plink_v2$PC1) # -0.06071567
+cor <- polyserial(merge_v3_categorical_variables$historyhypercholestrolemia,SNP_PC1_PC2_PC3_Plink_v2$PC2) # 0.02673601
+cor <- polyserial(merge_v3_categorical_variables$historyhypercholestrolemia,SNP_PC1_PC2_PC3_Plink_v2$PC3) # 0.09137698
+#0.06071567*100+0.02673601*100+0.09137698*100=17.88
+```
+
+```{r}
+merge_v3_categorical_variables_pcs <- cbind(merge_v3_categorical_variables,SNP_PC1_PC2_PC3_Plink_v2)
+cor <-hetcor(merge_v3_categorical_variables_pcs, ML=FALSE) #pearson type of cor slightly different with biserial
+cor$correlations
+#                                    sex        race historyhypertension historydiabetesmellitus historyhypercholestrolemia   diagnosis
+# sex                         1.00000000  0.09647878         -0.03752592             -0.07525913               -0.129120897  0.26790774
+# race                        0.09647878  1.00000000         -0.08578327             -0.04880125                0.041533148  0.05177473
+# historyhypertension        -0.03752592 -0.08578327          1.00000000              0.26569963                0.355658903 -0.27559299
+# historydiabetesmellitus    -0.07525913 -0.04880125          0.26569963              1.00000000                0.246901909 -0.24979313
+# historyhypercholestrolemia -0.12912090  0.04153315          0.35565890              0.24690191                1.000000000 -0.14744777
+# diagnosis                   0.26790774  0.05177473         -0.27559299             -0.24979313               -0.147447772  1.00000000
+# PC1                        -0.04344418 -0.47985991          0.10005500              0.13704772               -0.095407258 -0.06669989
+# PC2                        -0.07112025 -0.25634956          0.02360019              0.02984701                0.002520536  0.02473808
+# PC3                        -0.03862215 -0.48104226          0.01457055              0.01708294                0.041713235 -0.13751925
+#                                      PC1           PC2           PC3
+# sex                        -4.344418e-02 -7.112025e-02 -3.862215e-02
+# race                       -4.798599e-01 -2.563496e-01 -4.810423e-01
+# historyhypertension         1.000550e-01  2.360019e-02  1.457055e-02
+# historydiabetesmellitus     1.370477e-01  2.984701e-02  1.708294e-02
+# historyhypercholestrolemia -9.540726e-02  2.520536e-03  4.171323e-02
+# diagnosis                  -6.669989e-02  2.473808e-02 -1.375192e-01
+# PC1                         1.000000e+00 -2.158432e-08 -4.162922e-08
+# PC2                        -2.158432e-08  1.000000e+00  5.524897e-08
+# PC3                        -4.162922e-08  5.524897e-08  1.000000e+00
+```
+
+```{r}
+heatmap(cor$correlations)
+#library("reshape2")
+melt<-melt(cor$correlations)
+#library("ggplot2")
+G=ggplot(melt)
+G+geom_tile(aes(Var2,Var1,fill=value))
+rcm=round(cor$correlations,2) #Fancier with ggplot2
+meltrcm=melt(rcm)
+G=ggplot(meltrcm)
+G+geom_tile(aes(Var2,Var1,fill=value))+geom_text(aes(Var2,Var1,label=value))
+```
+
