@@ -105,4 +105,18 @@ dim(Covariates_Final) #351 8
 
 ```
 
+```{r}
+#get 275 samples to have two groups case and control match for risk factors 
+#use "n=277 -matched -IS vs Ctrl -patient data with demographic table.xlsx" file to get samples, this files including 277 samples but two of them failed for QC
+#used the sample name from the "=277 -matched -IS vs Ctrl -patient data with demographic table.xlsx" file
+
+final_sample_list <- read.csv("C:/eQTL/Primary_Files/final_sample_list.csv", row.names=1)
+test <- read.table("C:/eQTL/sample_name_275.csv", row.names=1, quote="\"", comment.char="")
+x <- final_sample_list[rownames(test),]
+write.table(new,file = "../../Primary_Files/samples_name_best_array_list_275.txt", sep = "\t")
+
+
+
+
+```
 

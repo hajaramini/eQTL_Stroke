@@ -232,7 +232,7 @@ write.csv(eQTL$cis$eqtls, "../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQT
 
 ```{r}
 #sex folder in mRNA folder to compare with another sex folder
-eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex//eQTL_cis_dist_1e6.csv") #1
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/sex/eQTL_cis_dist_1e6.csv") #1
 eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #1
 
 eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#62
@@ -1810,43 +1810,43 @@ x <- merge_v3$`AX-11336441`
 #UCSFCJ.099	2	1	5	67	1	1	0	0
 
 #min(merge_v3$TC02001095.hg.1)
-#[1] 5.144266
+#[1] 4.143497
 # max(merge_v3$TC02001095.hg.1)
-#[1] 6.203747
+#[1] 6.199059
 
-p1 <-ggplot(aes(y = merge_v3$TC20001033.hg.1, x = as.factor(merge_v3$`AX-40592209`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
-p2 <-p1 + labs(y="PTK6 expression", x = "rs12480811 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "CC", "1" = "CT", "2"="TT"))+scale_y_continuous(expression(paste( italic("PTK6")," " , "expression")))+expand_limits(y=c(5.5,6.5))
+p1 <-ggplot(aes(y = merge_v3$TC02001095.hg.1, x = as.factor(merge_v3$`AX-11336441`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="ZNF804A expression", x = "rs17712238 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("ZNF804A")," " , "expression")))+expand_limits(y=c(4.5,6.5))
 
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2.pdf",width = 7, height = 5)
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2.jpg",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3.jpg",width = 7, height = 5)
 ```
 
 
 ```{r}
 #to see the scatterplot for each SNP-gene pairs
 cols <- c("1" = "red", "4" = "blue")
-p1 <- ggplot(data = merge_v3, aes(x=as.factor(merge_v3$`AX-40592209`), y=merge_v3$TC20001033.hg.1)) + geom_point(alpha = 0.5, size = 3, aes(colour =as.factor(merge_v3$diagnosis))) 
+p1 <- ggplot(data = merge_v3, aes(x=as.factor(merge_v3$`AX-11336441`), y=merge_v3$TC02001095.hg.1)) + geom_point(alpha = 0.5, size = 3, aes(colour =as.factor(merge_v3$diagnosis))) 
 
-p2 <-p1 + labs(y="PTK6 expression", x = "rs12480811 genotype", fill ="diagnosis")+scale_colour_manual(name ="diagnosis", values = cols, breaks = c("1", "4"),labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("CC", "CT", "TT"))+scale_y_continuous(expression(paste(italic("PTK6")," " , "expression")))+ expand_limits(y=c(5.5,6.5))
+p2 <-p1 + labs(y="ZNF804A expression", x = "rs17712238 genotype", fill ="diagnosis")+scale_colour_manual(name ="diagnosis", values = cols, breaks = c("1", "4"),labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("GG", "GA", "AA"))+scale_y_continuous(expression(paste(italic("ZNF804A")," " , "expression")))+ expand_limits(y=c(5.5,6.5))
 
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_point.pdf",width = 7, height = 5)
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_point.jpg",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_point.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_point.jpg",width = 7, height = 5)
 
 ```
 
 ```{r}
 #scatterplot with drawing line "http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization"
 #change that to show the case and control only based on the colour not shape
-p1 <- ggplot(merge_v3, aes(x=merge_v3$`AX-40592209`, y=merge_v3$TC20001033.hg.1, colour=as.factor(merge_v3$diagnosis), xlim(c(0,1,2))))+
+p1 <- ggplot(merge_v3, aes(x=merge_v3$`AX-11336441`, y=merge_v3$TC02001095.hg.1, colour=as.factor(merge_v3$diagnosis), xlim(c(0,1,2))))+
   geom_point() + 
   geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
   scale_color_manual(values=cols, name = "diagnosis",breaks = c("1", "4"),labels = c("IS", "VRFC"))+
   theme(legend.position="top")+ expand_limits(y=c(5.5,6.5))
 
-p2 <-p1 + labs(y="PTK6 expression", x = "rs12480811 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("PTK6")," " , "expression"))) 
+p2 <-p1 + labs(y="ZNF804A expression", x = "rs17712238 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("ZNF804A")," " , "expression"))) 
 
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_regline.pdf",width = 7, height = 5)
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_regline.jpg",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_regline.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_regline.jpg",width = 7, height = 5)
 
 ```
 
@@ -1871,33 +1871,316 @@ data_summary <- function(data, varname, groupnames){
 ```{r}
 #for merge_v3 data
 #merge_v3$diagnosis <- as.factor(merge_v3$diagnosis)
-df <-data_summary(merge_v3,varname = "TC20001033.hg.1", groupnames =c("diagnosis","`AX-40592209`")) #Na in sd is due to small number of samples in that case, so we could see the NA
+df <-data_summary(merge_v3,varname = "TC02001095.hg.1", groupnames =c("diagnosis","`AX-11336441`")) #Na in sd is due to small number of samples in that case, so we could see the NA
 # Convert genotype to a factor variable
-df$`AX-40592209` <- as.factor(df$`AX-40592209`)
+df$`AX-11336441` <- as.factor(df$`AX-11336441`)
 ```
 
 ```{r}
 #Barplot with error bars
-p1<- ggplot(df, aes(x=df$`AX-40592209`, y=df$TC20001033.hg.1, fill=as.factor(df$diagnosis))) + 
+p1<- ggplot(df, aes(x=factor(df$`AX-11336441`), y=df$TC02001095.hg.1, fill=as.factor(df$diagnosis))) + 
   geom_bar(stat="identity", color="black", 
            position=position_dodge()) +
-  geom_errorbar(aes(ymin=TC20001033.hg.1-sd, ymax=TC20001033.hg.1+sd), width=.2,
-                 position=position_dodge(.9))+ expand_limits(y=c(5.5,6.5))
+  geom_errorbar(aes(ymin=TC02001095.hg.1-sd, ymax=TC02001095.hg.1+sd), width=.2,
+                 position=position_dodge(.9))+ expand_limits(y=c(4,6.5))
 
-p2 <-p1 + labs(y="PTK6 expression", x = "rs12480811 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("PTK6")," " , "expression")))+ scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("TT", "TC", "CC"))
+p2 <-p1 + labs(y="ZNF804A expression", x = "rs17712238 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("ZNF804A")," " , "expression")))+ scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("GG", "GA", "AA"))
 
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_boxerrorbar.pdf",width = 7, height = 5)
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_boxerrorbar.jpg",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_boxerrorbar.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_boxerrorbar.jpg",width = 7, height = 5)
 ```
 
 ```{r}
 #scatterplot with error bars
-p1 <- ggplot(df, aes(x=df$`AX-40592209`, y=df$TC20001033.hg.1, group=as.factor(df$diagnosis), color =as.factor(df$diagnosis)))+
+p1 <- ggplot(df, aes(x=as.factor(df$`AX-11336441`), y=df$TC02001095.hg.1, group=as.factor(df$diagnosis), color =as.factor(df$diagnosis)))+
 geom_line(aes(group=df$diagnosis))+
-geom_errorbar(aes(ymin=TC20001033.hg.1-sd, ymax=TC20001033.hg.1+sd),width=.2)+ expand_limits(y=c(5,6))
+geom_errorbar(aes(ymin=TC02001095.hg.1-sd, ymax=TC02001095.hg.1+sd),width=.2)+ expand_limits(y=c(5,6.5))
 
-p2 <-p1 + labs(y="PTK6 expression", x = "rs12480811 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("PTK6")," " , "expression")))+ scale_color_discrete(name = "diagnosis", breaks = c("1","4"), labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("TT", "TC", "CC"))
+p2 <-p1 + labs(y="ZNF804A expression", x = "rs17712238 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("ZNF804A")," " , "expression")))+ scale_color_discrete(name = "diagnosis", breaks = c("1","4"), labels = c("IS", "VRFC"))+ scale_x_discrete( breaks = c("0", "1", "2"),labels = c("GG", "GA", "AA"))
 
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_scattererrorbar.pdf",width = 7, height = 5)
-ggsave(p2, file="../../Input_Output/Plot/cis-eQTL2_scattererrorbar.jpg",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_scattererrorbar.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL3_scattererrorbar.jpg",width = 7, height = 5)
+```
+
+
+```{r}
+#          snps            gene statistic       pvalue        FDR        beta
+# 4 AX-29907155	TC11001143.hg.1	4	5.41720137	1.15E-07	0.119762842	0.255487197		NRGN 
+
+fit <- lm(TC11001143.hg.1~`AX-29907155` +age+race+sex+diagnosis+historyhypertension +historydiabetesmellitus+historyhypercholestrolemia+diagnosissubtype +`AX-29907155`*diagnosis, data = merge_v3)
+ summary (fit)
+# Call:
+# lm(formula = TC11001143.hg.1 ~ `AX-29907155` + age + race + sex + 
+#     diagnosis + historyhypertension + historydiabetesmellitus + 
+#     historyhypercholestrolemia + diagnosissubtype + `AX-29907155` * 
+#     diagnosis, data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -2.0106 -0.5062 -0.0681  0.3463  3.1651 
+# 
+# Coefficients:
+#                             Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 8.021700   0.360534  22.250  < 2e-16 ***
+# `AX-29907155`              -0.613647   0.131172  -4.678 4.18e-06 ***
+# age                         0.004757   0.003409   1.395 0.163831    
+# race                       -0.015909   0.032878  -0.484 0.628791    
+# sex                         0.153165   0.087805   1.744 0.081999 .  
+# diagnosis                  -0.397965   0.108285  -3.675 0.000276 ***
+# historyhypertension        -0.005687   0.099496  -0.057 0.954449    
+# historydiabetesmellitus     0.302798   0.104182   2.906 0.003895 ** 
+# historyhypercholestrolemia -0.033462   0.092637  -0.361 0.718160    
+# diagnosissubtype            0.045383   0.045452   0.998 0.318752    
+# `AX-29907155`:diagnosis     0.255487   0.047162   5.417 1.15e-07 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7789 on 340 degrees of freedom
+# Multiple R-squared:  0.1299,	Adjusted R-squared:  0.1043 
+# F-statistic: 5.077 on 10 and 340 DF,  p-value: 6.572e-07
+
+#merge_v3$`AX-29907155`  
+# 0   1   2 
+# 19  118 214 
+x <- merge_v3$`AX-29907155`
+
+# 0 10 (UCDSS.074),45 (UCDSS.213),83 (UCDSS.331),107 (UCDSS.440),110 (UCDSS.452),117 (UCDSS.473),122 (UCDSS.480),172 (UCDSS.571),177 (UCDSS.580),189 (UCDSS.613),201 (UCDSS.671),206 (UCDSS.680),210 (UCDSS.686),295 (UCDSS.867),321 (UCSFCJ.092),322 (UCSFCJ.097),325 (UCSFCJ.109),335 (UCSFCJ155),339 (UofASS.003)
+
+#diagnosissubtype	gender	race	age	diagnosis	historyhypertension	historydiabetesmellitus	historyhypercholestrolemia
+#UCDSS.074	6	1	3	72	1	1	0	0
+#UCDSS.213	7	2	5	42	4	0	0	0
+#UCDSS.331	8	2	5	57	4	0	0	0
+#UCDSS.440	8	1	5	51	4	0	0	1
+#UCDSS.452	1	2	5	68	1	0	0	1
+#UCDSS.473	3	2	5	61	1	1	1	1
+#UCDSS.480	7	2	5	41	4	0	0	0
+#UCDSS.571	2	1	3	69	1	1	0	0
+#UCDSS.580	1	1	5	62	1	1	1	1
+#UCDSS.613	2	1	4	64	1	1	1	1
+#UCDSS.671	4	2	5	61	1	1	0	1
+#UCDSS.680	4	1	5	77	1	1	1	1
+#UCDSS.686	3	1	5	47	1	1	0	1
+#UCDSS.867	6	2	5	69	1	1	1	0
+#UCSFCJ.092	8	2	5	77	4	0	0	0
+#UCSFCJ.097	4	1	5	60	1	0	0	0
+#UCSFCJ.109	4	1	2	53	1	1	1	1
+#UCSFCJ155	3	1	5	69	1	1	1	1
+#UofASS.003	8	2	5	80	4	1	1	0
+
+
+#min(merge_v3$TC11001143.hg.1)
+#[1] 6.084047
+# max(merge_v3$TC11001143.hg.1)
+#[1] 11.23357
+
+p1 <-ggplot(aes(y = merge_v3$TC11001143.hg.1, x = as.factor(merge_v3$`AX-29907155`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "CC", "1" = "CT", "2"="TT"))+scale_y_continuous(expression(paste( italic("NRGN")," " , "expression")))+expand_limits(y=c(6,12))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4.jpg",width = 7, height = 5)
+```
+
+
+```{r}
+#to see the scatterplot for each SNP-gene pairs
+cols <- c("1" = "red", "4" = "blue")
+p1 <- ggplot(data = merge_v3, aes(x=as.factor(merge_v3$`AX-29907155`), y=merge_v3$TC11001143.hg.1)) + geom_point(alpha = 0.5, size = 3, aes(colour =as.factor(merge_v3$diagnosis))) 
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_colour_manual(name ="diagnosis", values = cols, breaks = c("1", "4"),labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("CC", "CT", "TT"))+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ expand_limits(y=c(6,12))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_point.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_point.jpg",width = 7, height = 5)
+
+```
+
+```{r}
+#scatterplot with drawing line "http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization"
+#change that to show the case and control only based on the colour not shape
+p1 <- ggplot(merge_v3, aes(x=merge_v3$`AX-29907155`, y=merge_v3$TC11001143.hg.1, colour=as.factor(merge_v3$diagnosis), xlim(c(0,1,2))))+
+  geom_point() + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_color_manual(values=cols, name = "diagnosis",breaks = c("1", "4"),labels = c("IS", "VRFC"))+
+  theme(legend.position="top")+ expand_limits(y=c(6,12))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression"))) 
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_regline.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_regline.jpg",width = 7, height = 5)
+
+```
+
+
+```{r}
+#for merge_v3 data
+#merge_v3$diagnosis <- as.factor(merge_v3$diagnosis)
+df <-data_summary(merge_v3,varname = "TC11001143.hg.1", groupnames =c("diagnosis","`AX-29907155`")) #Na in sd is due to small number of samples in that case, so we could see the NA
+# Convert genotype to a factor variable
+df$`AX-29907155` <- as.factor(df$`AX-29907155`)
+```
+
+```{r}
+#Barplot with error bars
+p1<- ggplot(df, aes(x=factor(df$`AX-29907155`), y=df$TC11001143.hg.1, fill=as.factor(df$diagnosis))) + 
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=TC11001143.hg.1-sd, ymax=TC11001143.hg.1+sd), width=.2,
+                 position=position_dodge(.9))+ expand_limits(y=c(6,10))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("CC", "CT", "TT"))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_boxerrorbar.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_boxerrorbar.jpg",width = 7, height = 5)
+```
+
+```{r}
+#scatterplot with error bars
+p1 <- ggplot(df, aes(x=as.factor(df$`AX-29907155`), y=df$TC11001143.hg.1, group=as.factor(df$diagnosis), color =as.factor(df$diagnosis)))+
+geom_line(aes(group=df$diagnosis))+
+geom_errorbar(aes(ymin=TC11001143.hg.1-sd, ymax=TC11001143.hg.1+sd),width=.2)+ expand_limits(y=c(6,10))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ scale_color_discrete(name = "diagnosis", breaks = c("1","4"), labels = c("IS", "VRFC"))+ scale_x_discrete( breaks = c("0", "1", "2"),labels = c("CC", "CT", "TT"))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_scattererrorbar.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_scattererrorbar.jpg",width = 7, height = 5)
+```
+
+```{r}
+#check the df with following script
+merge_v3 %>%
+  #select(`AX-29907155`, diagnosis,TC11001143.hg.1) %>%
+  filter(diagnosis == "1" & `AX-29907155` == "1") %>%
+  summarise(mean = mean(TC11001143.hg.1))
+```
+
+
+```{r}
+#          snps            gene statistic       pvalue        FDR        beta
+# 5 AX-15964685	TC08000305.hg.1		5	5.225668547	3.03E-07	0.216861337	0.311261485		IDO1  rs72639679
+
+fit <- lm(TC08000305.hg.1~`AX-15964685` +age+race+sex+diagnosis+historyhypertension +historydiabetesmellitus+historyhypercholestrolemia+diagnosissubtype +`AX-15964685`*diagnosis, data = merge_v3)
+
+summary (fit)
+
+# Call:
+# lm(formula = TC08000305.hg.1 ~ `AX-15964685` + age + race + sex + 
+#     diagnosis + historyhypertension + historydiabetesmellitus + 
+#     historyhypercholestrolemia + diagnosissubtype + `AX-15964685` * 
+#     diagnosis, data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.2135 -0.3592 -0.0849  0.2308  4.5788 
+# 
+# Coefficients:
+#                              Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 5.0657646  0.2190491  23.126  < 2e-16 ***
+# `AX-15964685`              -0.4933477  0.1378611  -3.579 0.000397 ***
+# age                         0.0015549  0.0024834   0.626 0.531665    
+# race                        0.0190781  0.0239543   0.796 0.426343    
+# sex                         0.0720583  0.0642123   1.122 0.262589    
+# diagnosis                   0.0108554  0.0581057   0.187 0.851914    
+# historyhypertension         0.1200641  0.0727552   1.650 0.099832 .  
+# historydiabetesmellitus    -0.0492834  0.0757591  -0.651 0.515798    
+# historyhypercholestrolemia  0.0009056  0.0678438   0.013 0.989358    
+# diagnosissubtype           -0.0130327  0.0329329  -0.396 0.692553    
+# `AX-15964685`:diagnosis     0.3106077  0.0598570   5.189 3.67e-07 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.5614 on 334 degrees of freedom
+#   (6 observations deleted due to missingness)
+# Multiple R-squared:  0.09948,	Adjusted R-squared:  0.07252 
+# F-statistic:  3.69 on 10 and 334 DF,  p-value: 0.0001062
+ 
+
+#merge_v3$`AX-15964685`  
+# 0   1   2 NA
+# 296  46   3 6
+#x <- merge_v3$`AX-15964685`
+#2 22 (UCDSS.130), 93 (UCDSS.384), 114 (UCDSS.468)
+
+
+#diagnosissubtype	gender	race	age	diagnosis	historyhypertension	historydiabetesmellitus	historyhypercholestrolemia
+#UCDSS.130	1	1	5	80	1	1	0	0
+#UCDSS.384	4	1	5	60	1	1	1	1
+#UCDSS.468	3	1	5	46	1	1	0	1
+
+
+#min(merge_v3$TC08000305.hg.1)
+#[1] 4.525935
+# max(merge_v3$TC08000305.hg.1)
+#[1] 9.990676
+
+x <-merge_v3[!is.na(merge_v3$'AX-15964685'), ] #remove samples with NA
+
+
+p1 <-ggplot(aes(y = x$TC08000305.hg.1, x = as.factor(x$`AX-15964685`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="IDO1 expression", x = "rs72639679 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TG", "2"="GG"))+scale_y_continuous(expression(paste( italic("IDO1")," " , "expression")))+expand_limits(y=c(4,10))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5.jpg",width = 7, height = 5)
+```
+
+
+```{r}
+#to see the scatterplot for each SNP-gene pairs
+cols <- c("1" = "red", "4" = "blue")
+p1 <- ggplot(data = x, aes(x=as.factor(x$`AX-15964685`), y=x$TC08000305.hg.1)) + geom_point(alpha = 0.5, size = 3, aes(colour =as.factor(x$diagnosis))) 
+
+p2 <-p1 + labs(y="IDO1 expression", x = "rs72639679 genotype", fill ="diagnosis")+scale_colour_manual(name ="diagnosis", values = cols, breaks = c("1", "4"),labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("TT", "TG", "GG"))+scale_y_continuous(expression(paste(italic("IDO1")," " , "expression")))+ expand_limits(y=c(4,10))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5_point.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5_point.jpg",width = 7, height = 5)
+
+```
+
+```{r}
+#scatterplot with drawing line "http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization"
+#change that to show the case and control only based on the colour not shape
+p1 <- ggplot(x, aes(x=x$`AX-15964685`, y=x$TC08000305.hg.1, colour=as.factor(x$diagnosis), xlim(c(0,1,2))))+
+  geom_point() + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_color_manual(values=cols, name = "diagnosis",breaks = c("1", "4"),labels = c("IS", "VRFC"))+
+  theme(legend.position="top")+ expand_limits(y=c(4,10))
+
+p2 <-p1 + labs(y="IDO1 expression", x = "rs72639679 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("IDO1")," " , "expression"))) 
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5_regline.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5_regline.jpg",width = 7, height = 5)
+**HERE**
+```
+
+
+```{r}
+#for merge_v3 data
+#merge_v3$diagnosis <- as.factor(merge_v3$diagnosis)
+df <-data_summary(x,varname = "TC08000305.hg.1", groupnames =c("diagnosis","`AX-15964685`")) #Na in sd is due to small number of samples in that case, so we could see the NA
+# Convert genotype to a factor variable
+df$`AX-15964685` <- as.factor(df$`AX-15964685`)
+```
+
+```{r}
+#Barplot with error bars
+p1<- ggplot(df, aes(x=factor(df$`AX-29907155`), y=df$TC11001143.hg.1, fill=as.factor(df$diagnosis))) + 
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=TC11001143.hg.1-sd, ymax=TC11001143.hg.1+sd), width=.2,
+                 position=position_dodge(.9))+ expand_limits(y=c(6,10))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("CC", "CT", "TT"))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_boxerrorbar.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_boxerrorbar.jpg",width = 7, height = 5)
+```
+
+```{r}
+#scatterplot with error bars
+p1 <- ggplot(df, aes(x=as.factor(df$`AX-29907155`), y=df$TC11001143.hg.1, group=as.factor(df$diagnosis), color =as.factor(df$diagnosis)))+
+geom_line(aes(group=df$diagnosis))+
+geom_errorbar(aes(ymin=TC11001143.hg.1-sd, ymax=TC11001143.hg.1+sd),width=.2)+ expand_limits(y=c(6,10))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs56348411 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ scale_color_discrete(name = "diagnosis", breaks = c("1","4"), labels = c("IS", "VRFC"))+ scale_x_discrete( breaks = c("0", "1", "2"),labels = c("CC", "CT", "TT"))
+
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_scattererrorbar.pdf",width = 7, height = 5)
+ggsave(p2, file="../../Input_Output/Plot/cis-eQTL4_scattererrorbar.jpg",width = 7, height = 5)
 ```
