@@ -112,11 +112,51 @@ dim(Covariates_Final) #351 8
 
 final_sample_list <- read.csv("C:/eQTL/Primary_Files/final_sample_list.csv", row.names=1)
 test <- read.table("C:/eQTL/sample_name_275.csv", row.names=1, quote="\"", comment.char="")
-x <- final_sample_list[rownames(test),]
+x <- final_sample_list[rownames(test),] #275
 write.table(new,file = "../../Primary_Files/samples_name_best_array_list_275.txt", sep = "\t")
+#then grab CEL files for these 275 samples to do genotyping and gene expression
+```
 
+```{r}
+#create SNP.txt for 275 samples
 
+AxiomGT1.calls_v1 <- read.csv("C:/eQTL/SNP/SNP_calls_275_eQTL/275_sample/AxiomGT1.calls_v1.csv", row.names=1)
+#View(AxiomGT1.calls_v1)
+#remove best array and replace it with sample name
+AxiomGT1.calls_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_275_eQTL/275_sample/AxiomGT1.calls_v2.csv", row.names=1)
+#head(AxiomGT1.calls_v2)
+#library("dplyr")
+AxiomGT1.calls_v2_sort <- AxiomGT1.calls_v2 %>%
+select(sort(names(.)))
+#View(AxiomGT1.calls_v2_sort)
+AxiomGT1.calls_v2_sort[AxiomGT1.calls_v2_sort == -1] <- NA # -1 in our data is equal missing data
+#dim(AxiomGT1.calls_v2_sort)
+write.table(AxiomGT1.calls_v2_sort, file = "../Input_Output/Samples_275/SNP.txt",col.names = T, sep = "\t")
+```
 
+```{r}
+#create GE.txt for 275 samples
+gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files_HTA2_275/gene_expression_275_SST-RMA-GENE-FULL-Group.SST-RMA-GENE-FULL - Group 1.TXT", row.names=1)
+#View(gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1)
+colnames(gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1) <- sub(x = colnames(gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1), pattern = "_HTA*.*", replacement ="")
+#dim(gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1)
+colnames(gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1)
+GE <- gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1[,c(1:275)]
+dim(GE)
+head(GE)
+write.table(GE, file = "../Input_Output/Samples_275/GE.txt",col.names = T, sep = "\t")
+```
+
+```{r}
+#create covariate matrix for 275 samples
+
+Demographic_Variables_Data_275 <- read.delim("C:/eQTL/Primary_Files/Demographic_Variables_Data_275.txt", row.names=1)
+View(Demographic_Variables_Data_275)
+COVARIATES_t <- t(Demographic_Variables_Data_275)
+dim(COVARIATES_t)
+COVARIATES_t
+colnames(COVARIATES_t)
+write.table(COVARIATES_t, "../../Input_Output/Samples_275/Covariate_Final_NO_PC.txt", col.names = T, sep = "\t")
 
 ```
 

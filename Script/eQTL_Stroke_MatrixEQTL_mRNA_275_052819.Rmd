@@ -1,0 +1,259 @@
+---
+title: "eQTL_Stroke_MatrixEQTL_mRNA_275_052819"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Here we want to analyze eQTL on the 275 samples for only mRNA coding genes, with this model
+#y=α+β1(SNP)+β2(sex)+β3(age)+β4(race)+β5(hypertension)+β6(diabetes)+β7(hypercholesterolemia)+β8(diagnosis subtype)+β9(diagnosis)+β10(SNP ✕ diagnosis)+error term.
+
+```{r}
+#GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_mRNA_19309.txt", row.names=1) #193009 genes
+#gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files_HTA2_275/gene_expression_275_SST-RMA-GENE-FULL-Group.SST-RMA-GENE-FULL - Group 1.TXT", row.names=1)
+gene_expression_mRNA_19309 <- gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1[rownames(GE_mRNA_19309),]
+gene_expression_mRNA_small_19309 <- gene_expression_mRNA_19309[,c(1:275)]
+gene_expression_mRNA_19309 <- gene_expression_mRNA_19309[,c(1:275)]
+#save
+write.table(gene_expression_mRNA_small_19309, file = "../../Input_Output/Samples_275/GE_mRNA_19309.txt",col.names =T, sep = "\t") 
+```
+
+
+```{r}
+SNP_calls_275_table <- read.delim("C:/eQTL/SNP/SNP_calls_275_eQTL/275_sample/SNP_calls_275_table.txt", row.names=1)#628679 20, including MAF, CR, HW and SNP id for each SNPs
+#Filter based on other references, using this paper "PancanQTL: systematic identification of cis-eQTLs and trans-eQTLs in 33 cancer types"
+SNP_calls_275_table_filter <- SNP_calls_275_table[SNP_calls_275_table$MinorAlleleFrequency > 0.05 & SNP_calls_275_table$CR > 95 & SNP_calls_275_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #274816  20
+table(SNP_calls_275_table$MinorAlleleFrequency > 0.05)
+# FALSE   TRUE 
+#337917 290762 
+table(SNP_calls_275_table$CR > 95)
+#FALSE   TRUE 
+# 15814 612865 
+table(SNP_calls_275_table$H.W.p.Value > 0.0000005)
+#FALSE   TRUE 
+#6421 622258 
+SNP_calls_275_table_filter_id <- row.names(SNP_calls_275_table_filter) 
+write.table(SNP_calls_275_table_filter_id, file = "../../Input_Output/Samples_275/SNP_calls_275_table_filter_id", col.names = T, sep = "\t")
+#subset snps id after filtering from SNP.txt file
+SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_275/SNP.txt", row.names=1)
+SNP_after_filter <- SNP[SNP_calls_275_table_filter_id,] #274816 275
+write.table(SNP_after_filter, file = "../../Input_Output/Samples_275/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", col.names = T, sep = "\t")
+```
+
+```{r}
+base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_275/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_275/Covariate_Final_NO_PC.txt", sep="") #need sample as colnames
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location_Exclude_Weird_Position.txt", sep="")
+SNP_Location <-  paste(base.dir, "/Input_Output/Samples_275/SNP_Location.txt", sep="") #include all SNPs location
+expression_file_name = paste(base.dir, "/Input_Output/Samples_275/GE_mRNA_19309.txt", sep="") 
+```
+
+```{r}
+output_file_name_cis = tempfile()
+output_file_name_tra = tempfile()
+errorCovariance = numeric()
+```
+
+```{r}
+## Load genotype data
+snps = SlicedData$new() #SlicedData object with genotype information.
+snps$fileDelimiter = "\t"      # the TAB character
+snps$fileOmitCharacters = "NA" # denote missing values;
+snps$fileSkipRows = 1          # one row of column labels
+snps$fileSkipColumns = 1       # one column of row labels
+snps$fileSliceSize = 2000    # read file in slices of 2,000 rows
+snps$LoadFile(SNP_file_name) 
+# Rows read: 274816 done. This is correct, we have   274816  SNPs id
+```
+
+```{r}
+# Load gene expression data
+gene = SlicedData$new(); #SlicedData object with gene expression information. Must have columns matching those of snps, create gene including row and column
+gene$fileDelimiter = "\t"      # the TAB characte
+gene$fileOmitCharacters = "NA" # denote missing values;
+gene$fileSkipRows = 1          # one row of column labels
+gene$fileSkipColumns = 1       # one column of row labels
+gene$fileSliceSize = 2000      # read file in slices of 2,000 rows
+gene$LoadFile(expression_file_name) 
+#Rows read: 19309 done. This is correct, we have 19309 genes
+```
+
+```{r}
+# Load covariates
+cvrt = SlicedData$new();
+cvrt$fileDelimiter = "\t"      # the TAB character
+cvrt$fileOmitCharacters = "NA" # denote missing values;
+cvrt$fileSkipRows = 1         # one row of column labels
+cvrt$fileSkipColumns = 1      # one column of row labels
+if(length(covariates_file_name)>0) {
+cvrt$LoadFile(covariates_file_name)
+}
+#Rows read: 8 done. correct
+```
+
+```{r}
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  65988   4
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3
+```
+
+```{r}
+useModel =  modelLINEAR_CROSS
+cisDist = 1e6
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_tra,
+pvOutputThreshold = 1e-10,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, 
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = 1e-5,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot",
+min.pv.by.genesnp = FALSE,
+noFDRsaveMemory = FALSE)
+
+unlink(output_file_name_tra);
+unlink(output_file_name_cis);
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_1e6.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_cis_dist_1e6.csv")
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #43
+
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#43
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_cis_dist_1e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis//eQTL_trans_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #66
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#29
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_1e6_merge.csv") 
+```
+
+#Try with different covariate matrix
+
+```{r}
+#try with y=α+β1(SNP)+β2(sex)+β3(age)+β4(race)+β5(diagnosis subtype)+β6(diagnosis)+β7(SNP ✕ diagnosis)+error term., with Covariate_Final_NO_PC_NO_Risk_Factors.txt
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_275/Covariate_Final_NO_PC_NO_Risk_Factors.txt", sep="") #5rows
+```
+
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis/eQTL_trans_1e6.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis/eQTL_cis_dist_1e6.csv")
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #49
+
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#43
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis/eQTL_cis_dist_1e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis/eQTL_trans_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #66
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#29
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis/eQTL_trans_1e6_merge.csv") 
+```
+
+```{r}
+#calculate first 20 PCs for 275 samples with Plink to add in modelrownames(plink_v2)<- plink_v2[,1]
+
+plink <- read.table("C:/eQTL/Plink_PCA/new_experiment_275/plink.eigenvec", quote="\"", comment.char="") #included 20 first PCs for 275 samples
+plink_v2 <-plink[,-1]
+rownames(plink_v2)<- plink_v2[,1] #convert sample name as a rownames
+rownames(plink_v2) %>% length() #275
+colnames(plink_v2)
+plink_v3 <- plink_v2[,-1]
+names(plink_v3)[1] <- "pc1"
+names(plink_v3)[2] <- "pc2"
+names(plink_v3)[3] <- "pc3"
+names(plink_v3)[4] <- "pc4"
+#save
+write.table(plink_v3,"../../../Plink_PCA/plink_pc1_pc2_pc3_pc4.txt", col.names = T, sep = "\t")
+#check samples name to be consistant with others list. convert these three names UCDSS.767_2 UCDSS.838_2 UCDSSTourettes to UCDSS.767.2 UCDSS.838.2 UCDSSTourettes.TSFS623CT
+
+#to see eigenvalue
+plink_eigen_value <- read.table("C:/eQTL/Plink_PCA/new_experiment_275/plink.eigenval", quote="\"", comment.char="")
+#        V1
+# 1  9.38979
+# 2  4.80464
+# 3  1.65176
+# 4  1.49629
+# 5  1.32433
+# 6  1.26869
+# 7  1.23978
+# 8  1.22486
+# 9  1.21870
+# 10 1.21253
+# 11 1.21199
+# 12 1.21002
+# 13 1.20364
+# 14 1.19799
+# 15 1.19694
+# 16 1.19456
+# 17 1.18775
+# 18 1.18142
+# 19 1.17899
+# 20 1.17381
+
+sum(plink_eigen_value) #36.76848 three pcs represent 43.10% and four pcs 47.17%
+
+```
+
+```{r}
+#try with y=α+β1(SNP)+β2(sex)+β3(age)+β4(race)+β5(diagnosis subtype)+β6(diagnosis)+β7(pc1)+β8(pc2)_β9(pc3)+β10(pc4)+β11(SNP ✕ diagnosis)+error term., with Covariate_Final_NO_Risk_Factors.txt
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_275/Covariate_Final_NO_Risk_Factors.txt", sep="") #9 rows
+
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_1e6.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6.csv")
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #43
+
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#43
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc//eQTL_cis_dist_1e6_merge.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #66
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#29
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_1e6_merge.csv") 
+```
