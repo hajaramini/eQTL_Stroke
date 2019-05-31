@@ -1,0 +1,51 @@
+---
+title: "eQTL_Stroke_MatrixEQTL_mRNA_78_053119"
+output: html_document
+---
+
+#Here we want to check eQTL for the samples that are not included in 275 list but present in 351 list
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Demographic_Variables_Data_351 <- read.delim("C:/eQTL/Primary_Files/Demographic_Variables_Data_351.txt", row.names=1) #351 samples
+Demographic_Variables_Data_275 <- read.delim("C:/eQTL/Primary_Files/Demographic_Variables_Data_275.txt", row.names=1) #275 samples
+sample_presentin351_absentin275 <- read.table("C:/eQTL/Primary_Files/sample_presentin351_absentin275.txt", row.names=1, quote="\"", comment.char="") #including 78 unique samples
+Demographic_Variables_Data_78 <- Demographic_Variables_Data_351[rownames(sample_presentin351_absentin275),] #78 8
+write.table(Demographic_Variables_Data_78,"../Input_Output/Samples_78/Covariate_Final_NO_PC.txt", col.names = T, sep = "\t")
+```
+
+```{r}
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_mRNA_19309.txt", row.names=1) # 19309  275
+gene_expression_mRNA_78 <- GE_mRNA_19309[,rownames(sample_presentin351_absentin275)] # 19309  78
+write.table(gene_expression_mRNA_78,"../Input_Output/Samples_78/GE_mRNA_19309.txt", col.names = T, sep = "\t")
+```
+
+```{r}
+#want to check SNP that pass the MAF in 275 samples
+SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names=1) #628679    351
+SNP_CRmore95_MAFmore0.05_HWEmore0.0000005 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_275/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", row.names=1) #274816   275
+SNP_78 <- SNP[rownames(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005),rownames(sample_presentin351_absentin275)] #274816   78
+write.table(SNP_78, "../Input_Output/Samples_78/SNP_78.txt",col.names = T, sep = "\t")
+```
+
+```{r}
+#import pc result from plink result for 351 samples
+plink <- read.table("C:/eQTL/Plink_PCA/plink.eigenvec", quote="\"", comment.char="") # 351  22
+plink_v2 <- plink[-1,]
+rownames(plink_v2)<- plink_v2[,1] #convert sample name as a rownames
+rownames(plink_v2) %>% length() #351
+colnames(plink_v2)
+plink_v3 <- plink_v2[,-1]
+names(plink_v3)[1] <- "pc1"
+names(plink_v3)[2] <- "pc2"
+names(plink_v3)[3] <- "pc3"
+names(plink_v3)[4] <- "pc4"
+#save
+write.table(plink_v3,"../../../Plink_PCA/plink_pc1_pc2_pc3_pc4.txt", col.names = T, sep = "\t")
+#check samples name to be consistant with others list. convert these three names UCDSS.767_2 UCDSS.838_2 UCDSSTourettes to UCDSS.767.2 UCDSS.838.2 UCDSSTourettes.TSFS623CT
+
+```
+
