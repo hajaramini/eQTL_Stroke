@@ -29,23 +29,584 @@ SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names=1) #62
 SNP_CRmore95_MAFmore0.05_HWEmore0.0000005 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_275/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005.txt", row.names=1) #274816   275
 SNP_78 <- SNP[rownames(SNP_CRmore95_MAFmore0.05_HWEmore0.0000005),rownames(sample_presentin351_absentin275)] #274816   78
 write.table(SNP_78, "../Input_Output/Samples_78/SNP_78.txt",col.names = T, sep = "\t")
+
+#all SNP for 78 samples (using in Plink)
+SNP_78_all <- SNP[rownames(SNP),rownames(sample_presentin351_absentin275)] #628679   78
+write.table(SNP_78_all, "../../Input_Output/Samples_78/SNP_78_all.txt",col.names = T, sep = "\t")
+
+SNP_78_all_transpose <- t(SNP_78_all) #for using in plink for PCA
+write.table(SNP_78_all_transpose, "../../Input_Output/Samples_78/SNP_78_all_transpose.txt",col.names = T, sep = "\t")
 ```
 
 ```{r}
-#import pc result from plink result for 351 samples
-plink <- read.table("C:/eQTL/Plink_PCA/plink.eigenvec", quote="\"", comment.char="") # 351  22
-plink_v2 <- plink[-1,]
-rownames(plink_v2)<- plink_v2[,1] #convert sample name as a rownames
-rownames(plink_v2) %>% length() #351
-colnames(plink_v2)
-plink_v3 <- plink_v2[,-1]
-names(plink_v3)[1] <- "pc1"
-names(plink_v3)[2] <- "pc2"
-names(plink_v3)[3] <- "pc3"
-names(plink_v3)[4] <- "pc4"
+#PCA for 78 samples (run into Plink)
+plink <- read.table("C:/eQTL/Plink_PCA/experiment_78/plink.eigenvec", quote="\"", comment.char="") # 78  22
 #save
-write.table(plink_v3,"../../../Plink_PCA/plink_pc1_pc2_pc3_pc4.txt", col.names = T, sep = "\t")
+write.table(plink, "../../../Plink_PCA/experiment_78/plink.eigenvec.v2.txt", col.names = T, sep = "\t") #modified this file in excle to have pc1-pc6 as a colnames to use in covariate matrix
+
 #check samples name to be consistant with others list. convert these three names UCDSS.767_2 UCDSS.838_2 UCDSSTourettes to UCDSS.767.2 UCDSS.838.2 UCDSSTourettes.TSFS623CT
 
+plink <- read.table("C:/eQTL/Plink_PCA/experiment_78/plink.eigenval", quote="\"", comment.char="") #eigenvalue for 78 samples
+#          V1
+# 1  2.237770
+# 2  1.901770
+# 3  1.170890
+# 4  1.144580
+# 5  1.080160
+# 6  0.979698
+# 7  0.950619
+# 8  0.792249
+# 9  0.754585
+# 10 0.655327
+# 11 0.630301
+# 12 0.615697
+# 13 0.605352
+# 14 0.600000
+# 15 0.599341
+# 16 0.595237
+# 17 0.592333
+# 18 0.590401
+# 19 0.588710
+# 20 0.586068
+sum(plink) 17.67109
+#1.080160+2.237770+1.901770+ 1.170890+ 1.144580+0.979698=  8.514868/17.67109 =  48.1853 six first pcs represent 48% 0f variation, we need something close to the model that used for 275, so we used these six pcs. 
+#create the covariate matrix in excle, convert "4" for race of UCDSS.613 and UCDSS.784 to "7".
+
+```
+
+
+```{r}
+#GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/GE_mRNA_19309.txt", row.names=1) #193009 genes
+gene_expression_78_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files_HTA2_78/ene_expression_78.SST-RMA-GENE-FULL- Group1.SST-RMA-GENE-FULL - Group 1.TXT", row.names=1)
+colnames(gene_expression_78_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1) <- sub(x = colnames(gene_expression_78_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1), pattern = "_HTA*.*", replacement ="") 
+gene_expression_mRNA_19309 <- gene_expression_78_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1[rownames(GE_mRNA_19309),]
+gene_expression_mRNA_small_19309 <- gene_expression_mRNA_19309[,c(1:78)] #19309 78
+#save
+write.table(gene_expression_mRNA_small_19309, file = "../../Input_Output/Samples_78/GE_mRNA_19309.txt",col.names =T, sep = "\t") 
+```
+
+```{r}
+base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_78/SNP_78.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_78/Covariate_Final_NO_Risk_Factors.txt", sep="") #need sample as colnames
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_78/Covariate_Final_NO_PC.txt", sep="")
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_78/Covariate_Final.txt", sep="")
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
+snps_location_file_name <-  paste(base.dir, "/Input_Output/SNP_Location.txt", sep="") #include all SNPs location
+expression_file_name = paste(base.dir, "/Input_Output/Samples_78/GE_mRNA_19309.txt", sep="") 
+
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim  65988   4
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE) #dim 628677 3
+```
+
+```{r}
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_78/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_78/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTl_trans_1e6.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_78/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6.csv")
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #43
+
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#43
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_78/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6_merge.csv")
+```
+
+```{r}
+#grab SNP and genes from the cis and trans eQTL result of 275 samples
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6.csv", row.names=1)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_1e6.csv", row.names=1)
+
+snps_eQTL <- eQTL_cis_dist_1e6$snps
+snps_eQTL_trans <- unique(eQTL_trans_1e6$snps)
+
+gene_eQTL <- unique(eQTL_cis_dist_1e6$gene)
+gene_eQTL_trans <- unique(eQTL_trans_1e6$gene)
+
+#merge them and save them as two list on excle
+```
+
+```{r}
+SNP_78 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_78/SNP_78.txt", row.names=1) # 274816   78
+snps_cis_trans_eQTL_275 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_78/snps_cis_trans_eQTL_275.txt", row.names=1, sep="") #77
+snps_78 <- SNP_78[rownames(snps_cis_trans_eQTL_275),] #77 78
+write.table(snps_78,"../../Input_Output/Samples_78/snps_cis_trans_eQTL_275_78.txt", col.names = T, sep = "\t")
+
+gene_cis_trans_eQTL_275 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_78/gene_cis_trans_eQTL_275.txt", sep="")
+gene_cis_trans_eQTL_275_v2 <- unique(gene_cis_trans_eQTL_275) #57
+
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_78/GE_mRNA_19309.txt", row.names=1)#19309    78
+gene_78 <- GE_mRNA_19309[gene_cis_trans_eQTL_275_v2$geneid,] #57 78
+write.table(gene_78,"../../Input_Output/Samples_78/gene_cis_trans_eQTL_275_78.txt", col.names = T, sep = "\t")
+
+```
+
+```{r}
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_78/snps_cis_trans_eQTL_275_78.txt", sep="")
+expression_file_name = paste(base.dir, "/Input_Output/Samples_78/gene_cis_trans_eQTL_275_78.txt", sep="") 
+```
+
+```{r}
+gene_78_t <- t(gene_expression_mRNA_small_19309) #78 19309
+snps_78_t <-t(SNP_78) #78 274816
+Covariate_Final <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_78/Covariate_Final.txt", row.names=1)
+Covariate_Final_t <-t(Covariate_Final) #78 14
+merge <- cbind(gene_78_t,snps_78_t) # 78 294125
+#dim(merge)
+merge_v2 <- cbind(merge,Covariate_Final_t)
+#dim(merge_v2) #final dataset  351 293005
+merge_v3 <- as.data.frame(merge_v2)
+#save
+save(merge_v3, file = "../../Input_Output/RData/merge_final_78.RData")
+```
+
+```{r}
+#to check the merge_v3 info. and eQTL of 78 samples
+
+fit <- lm(TC05000499.hg.1~`AX-14816460`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-14816460`*diagnosis, data = merge_v3)
+Call:
+lm(formula = TC05000499.hg.1 ~ `AX-14816460` + age + race + gender + 
+    diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+    pc6 + `AX-14816460` * diagnosis, data = merge_v3)
+
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.18573 -0.07484  0.00378  0.04412  0.32198 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              9.698039   0.320096  30.297  < 2e-16 ***
+# `AX-14816460`           -2.177696   0.155989 -13.961  < 2e-16 ***
+# age                     -0.001861   0.001155  -1.611 0.112006    
+# race                     0.014729   0.011479   1.283 0.204081    
+# gender                   0.111716   0.046620   2.396 0.019494 *  
+# diagnosissubtype        -0.026091   0.014680  -1.777 0.080281 .  
+# diagnosis               -1.051549   0.094916 -11.079  < 2e-16 ***
+# pc1                     -0.457896   0.140275  -3.264 0.001764 ** 
+# pc2                      0.469203   0.123452   3.801 0.000324 ***
+# pc3                      0.298979   0.120037   2.491 0.015354 *  
+# pc4                      0.263794   0.139714   1.888 0.063546 .  
+# pc5                     -1.303096   0.154465  -8.436  5.5e-12 ***
+# pc6                      0.512895   0.122582   4.184  8.9e-05 ***
+# `AX-14816460`:diagnosis  0.522119   0.043105  12.113  < 2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1095 on 64 degrees of freedom
+# Multiple R-squared:  0.8101,	Adjusted R-squared:  0.7715 
+# F-statistic:    21 on 13 and 64 DF,  p-value: < 2.2e-16
+table(merge_v3$`AX-14816460`)
+#0  1  2 
+#1  6 71 
+p1 <-ggplot(aes(y = merge_v3$TC05000499.hg.1, x = as.factor(merge_v3$`AX-14816460`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+
+
+fit <- lm(TC13000722.hg.1~`AX-39665713`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-39665713`*diagnosis, data = merge_v3)
+table(merge_v3$`AX-39665713`)
+#0  1   
+#73  5
+p1 <-ggplot(aes(y = merge_v3$TC13000722.hg.1, x = as.factor(merge_v3$`AX-39665713`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+
+fit <- lm(TC10000115.hg.1~`AX-29525235`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-29525235`*diagnosis, data = merge_v3)
+# Call:
+# lm(formula = TC10000115.hg.1 ~ `AX-29525235` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-29525235` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.42857 -0.13885 -0.03874  0.08343  0.77447 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              7.933450   0.401971  19.736  < 2e-16 ***
+# `AX-29525235`           -1.918892   0.162565 -11.804  < 2e-16 ***
+# age                      0.005803   0.002529   2.295 0.025017 *  
+# race                     0.008571   0.025079   0.342 0.733657    
+# gender                   0.033266   0.102910   0.323 0.747556    
+# diagnosissubtype        -0.003556   0.033249  -0.107 0.915162    
+# diagnosis               -0.971712   0.130111  -7.468 2.79e-10 ***
+# pc1                     -0.661818   0.283209  -2.337 0.022589 *  
+# pc2                      0.034434   0.272685   0.126 0.899909    
+# pc3                      0.044077   0.268175   0.164 0.869968    
+# pc4                      0.108999   0.249750   0.436 0.663992    
+# pc5                     -1.115472   0.270093  -4.130 0.000107 ***
+# pc6                      0.558220   0.268999   2.075 0.041995 *  
+# `AX-29525235`:diagnosis  0.490996   0.048690  10.084 7.58e-15 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.2394 on 64 degrees of freedom
+# Multiple R-squared:  0.754,	Adjusted R-squared:  0.704 
+# F-statistic: 15.09 on 13 and 64 DF,  p-value: 8.088e-15
+table(merge_v3$`AX-29525235`)
+#0  1 2
+#3 11 64 
+p1 <-ggplot(aes(y = merge_v3$TC10000115.hg.1, x = as.factor(merge_v3$`AX-29525235`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+
+fit <- lm(TC07001535.hg.1~`AX-42246523`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-42246523`*diagnosis, data = merge_v3)
+table(merge_v3$`AX-42246523`)
+#1 2
+#5 73
+p1 <-ggplot(aes(y = merge_v3$TC07001535.hg.1, x = as.factor(merge_v3$`AX-42246523`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+
+fit <- lm(TC10001789.hg.1~`AX-29517431`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-29517431`*diagnosis, data = merge_v3)
+# Call:
+# lm(formula = TC10001789.hg.1 ~ `AX-29517431` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-29517431` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#       Min        1Q    Median        3Q       Max 
+# -0.191977 -0.040974  0.001934  0.029714  0.224983 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              4.3601009  0.1816796  23.999  < 2e-16 ***
+# `AX-29517431`            0.2864473  0.0809658   3.538 0.000757 ***
+# age                      0.0014792  0.0008344   1.773 0.081035 .  
+# race                    -0.0051111  0.0082506  -0.619 0.537795    
+# gender                  -0.0742488  0.0331287  -2.241 0.028488 *  
+# diagnosissubtype        -0.0001145  0.0101409  -0.011 0.991025    
+# diagnosis                0.5963409  0.0696645   8.560 3.33e-12 ***
+# pc1                     -0.5951510  0.1051821  -5.658 3.86e-07 ***
+# pc2                      0.3033865  0.0862400   3.518 0.000806 ***
+# pc3                      0.0630931  0.0866695   0.728 0.469285    
+# pc4                      0.6825905  0.0998169   6.838 3.57e-09 ***
+# pc5                      0.2181157  0.0822693   2.651 0.010097 *  
+# pc6                     -0.7213004  0.1121652  -6.431 1.83e-08 ***
+# `AX-29517431`:diagnosis -0.2858824  0.0329216  -8.684 2.02e-12 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.0778 on 64 degrees of freedom
+# Multiple R-squared:  0.6686,	Adjusted R-squared:  0.6013 
+# F-statistic: 9.933 on 13 and 64 DF,  p-value: 5.934e-11
+table(merge_v3$`AX-29517431`)
+#1  2 
+#5 73
+p1 <-ggplot(aes(y = merge_v3$TC10001789.hg.1, x = as.factor(merge_v3$`AX-29517431`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+```
+
+```{r}
+#check the cis-eQTL of 275 samples for 78 samples by using lm() function
+fit <- lm(TC0X000829.hg.1~`AX-38686743`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-38686743`*diagnosis, data = merge_v3)
+
+table(merge_v3$`AX-38686743`)
+#0  1  2 
+#73  3  1 
+
+# Call:
+# lm(formula = TC0X000829.hg.1 ~ `AX-38686743` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-38686743` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.32753 -0.08379 -0.02070  0.07009  0.61011 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              4.187552   0.185917  22.524  < 2e-16 ***
+# `AX-38686743`           -0.133552   0.123461  -1.082  0.28349    
+# age                      0.001158   0.001819   0.636  0.52689    
+# race                     0.015851   0.017879   0.887  0.37869    
+# gender                  -0.131125   0.072099  -1.819  0.07372 .  
+# diagnosissubtype         0.003450   0.022342   0.154  0.87776    
+# diagnosis               -0.006203   0.045463  -0.136  0.89190    
+# pc1                      0.003990   0.198809   0.020  0.98405    
+# pc2                     -0.060066   0.174146  -0.345  0.73131    
+# pc3                     -0.060798   0.184632  -0.329  0.74303    
+# pc4                      0.130731   0.170305   0.768  0.44558    
+# pc5                     -0.167013   0.173102  -0.965  0.33832    
+# pc6                     -0.127329   0.186951  -0.681  0.49832    
+# `AX-38686743`:diagnosis  0.122030   0.045432   2.686  0.00923 ** 
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1696 on 63 degrees of freedom
+#   (1 observation deleted due to missingness)
+# Multiple R-squared:  0.2823,	Adjusted R-squared:  0.1342 
+# F-statistic: 1.906 on 13 and 63 DF,  p-value: 0.04627
+
+p1 <-ggplot(aes(y = merge_v3$TC0X000829.hg.1, x = as.factor(merge_v3$`AX-38686743`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+
+```
+
+```{r}
+fit <- lm(TC04001305.hg.1~`AX-14758778`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-38686743`*diagnosis, data = merge_v3)
+# Call:
+# lm(formula = TC04001305.hg.1 ~ `AX-14758778` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-38686743` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.57908 -0.21028 -0.01665  0.16076  0.83355 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              4.419766   0.384298  11.501   <2e-16 ***
+# `AX-14758778`           -0.058511   0.122618  -0.477    0.635    
+# age                      0.001590   0.003517   0.452    0.653    
+# race                    -0.006647   0.035829  -0.186    0.853    
+# gender                  -0.169339   0.139532  -1.214    0.230    
+# diagnosissubtype         0.010436   0.043174   0.242    0.810    
+# diagnosis                0.021416   0.088288   0.243    0.809    
+# pc1                     -0.238691   2.617224  -0.091    0.928    
+# pc2                     -0.050175   2.058022  -0.024    0.981    
+# pc3                      0.047976   1.358934   0.035    0.972    
+# pc4                      0.003301   4.847044   0.001    0.999    
+# pc5                      0.482307   2.583965   0.187    0.853    
+# pc6                     -0.253464   0.742625  -0.341    0.734    
+# `AX-38686743`            0.144960   0.239254   0.606    0.547    
+# diagnosis:`AX-38686743`  0.046476   0.090349   0.514    0.609    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.3277 on 61 degrees of freedom
+#   (2 observations deleted due to missingness)
+# Multiple R-squared:  0.1382,	Adjusted R-squared:  -0.05956 
+# F-statistic: 0.6989 on 14 and 61 DF,  p-value: 0.7667
+table(merge_v3$`AX-14758778`)
+# 0  1  2 
+#71  5  1
+```
+
+```{r}
+fit <- lm(TC18000998.hg.1~`AX-11701696`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-38686743`*diagnosis, data = merge_v3)
+
+table(merge_v3$`AX-11701696`)
+# 0  1 
+#68  8
+```
+
+```{r}
+fit <- lm(TC04000145.hg.1~`AX-34646211`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-34646211`*diagnosis, data = merge_v3)
+
+table(merge_v3$`AX-34646211`)
+# 0  1 
+#72  6 
+
+
+table(merge_v3$`AX-39724859`)
+#1  2 
+#5 73 
+
+
+table(merge_v3$`AX-36092663`)
+ # 0  1  2 
+ # 1 17 60 
+
+table(merge_v3$`AX-34244929`)
+# 0  1  2 
+#  2 23 53 
+
+table(merge_v3$`AX-40327447`)
+ # 0  1  2 
+ # 1  7 70
+
+table(merge_v3$`AX-32754641`)
+#  0  1  2 
+# 46 26  4 
+fit <- lm(TC19000642.hg.1~`AX-32754641`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-32754641`*diagnosis, data = merge_v3)
+# Call:
+# lm(formula = TC19000642.hg.1 ~ `AX-32754641` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-32754641` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.19606 -0.05069 -0.00723  0.04827  0.53515 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              4.6408240  0.1274144  36.423   <2e-16 ***
+# `AX-32754641`            0.0089805  0.0491155   0.183   0.8555    
+# age                     -0.0002856  0.0012466  -0.229   0.8195    
+# race                     0.0203138  0.0119417   1.701   0.0939 .  
+# gender                   0.0746295  0.0487251   1.532   0.1307    
+# diagnosissubtype         0.0153759  0.0156969   0.980   0.3311    
+# diagnosis               -0.0362112  0.0341066  -1.062   0.2925    
+# pc1                      0.0557677  0.1395431   0.400   0.6908    
+# pc2                     -0.0125393  0.1193790  -0.105   0.9167    
+# pc3                      0.0054172  0.1293649   0.042   0.9667    
+# pc4                     -0.0302925  0.1161820  -0.261   0.7952    
+# pc5                      0.0320288  0.1261985   0.254   0.8005    
+# pc6                      0.1535429  0.1280692   1.199   0.2351    
+# `AX-32754641`:diagnosis -0.0093020  0.0164215  -0.566   0.5731    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1148 on 62 degrees of freedom
+#   (2 observations deleted due to missingness)
+# Multiple R-squared:  0.107,	Adjusted R-squared:  -0.08027 
+# F-statistic: 0.5713 on 13 and 62 DF,  p-value: 0.8675
+table(merge_v3$`AX-42418945`)
+# 0  1  2 
+#  6 34 38 
+fit <- lm(TC08002600.hg.1~`AX-42418945`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-42418945`*diagnosis, data = merge_v3)
+# Call:
+# lm(formula = TC08002600.hg.1 ~ `AX-42418945` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-42418945` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -1.03448 -0.17141 -0.00652  0.16629  0.65883 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              9.0667817  0.4352121  20.833   <2e-16 ***
+# `AX-42418945`            0.2477078  0.1579028   1.569    0.122    
+# age                      0.0004379  0.0036493   0.120    0.905    
+# race                    -0.0002065  0.0358286  -0.006    0.995    
+# gender                   0.0890262  0.1478262   0.602    0.549    
+# diagnosissubtype         0.0093385  0.0459314   0.203    0.840    
+# diagnosis                0.0365865  0.1103649   0.332    0.741    
+# pc1                     -0.4903674  0.4011864  -1.222    0.226    
+# pc2                      0.0575080  0.3608529   0.159    0.874    
+# pc3                      0.6271221  0.3771373   1.663    0.101    
+# pc4                      0.2624354  0.3511229   0.747    0.458    
+# pc5                     -0.5938267  0.3577032  -1.660    0.102    
+# pc6                     -0.1687534  0.3832664  -0.440    0.661    
+# `AX-42418945`:diagnosis -0.0714137  0.0472452  -1.512    0.136    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.3458 on 64 degrees of freedom
+# Multiple R-squared:  0.1813,	Adjusted R-squared:  0.01506 
+# F-statistic: 1.091 on 13 and 64 DF,  p-value: 0.3832
+table(merge_v3$`AX-30137055`)
+#  0  1 
+# 71  7
+
+table(merge_v3$`AX-30137055`)
+#0  1 
+#71  7
+
+table(merge_v3$`AX-40461039`)
+#  0  1  2 
+# 21 37 20 
+
+
+table(merge_v3$`AX-42558879`)
+#  1  2 
+# 14 64 
+
+table(merge_v3$`AX-15683169`)
+# 0  1 
+# 66 12 
+
+table(merge_v3$`AX-12560974`)
+#  1  2 
+# 13 65 
+
+table(merge_v3$`AX-32776075`)
+#  1  2 
+# 11 67 
+
+table(merge_v3$`AX-83130777`)
+ # 1  2 
+ # 9 69 
+
+table(merge_v3$`AX-40552141`)
+#  0  1  2 
+# 35 32 11 
+
+table(merge_v3$`AX-11190683`)
+#0  1  2 
+#53 22  3 
+
+table(merge_v3$`AX-32558153`)
+ # 1  2 
+ # 6 66
+
+table(merge_v3$`AX-11608684`) #this is not sig in 275 samples
+#  0  1  2 
+# 35 27 15 
+
+table(merge_v3$`AX-42740371`) 
+# 1  2 
+#  6 72 
+
+table(merge_v3$`AX-11608684`) 
+#  0  1  2 
+# 35 27 15
+
+table(merge_v3$`AX-14538617`) 
+#  0  1 
+# 70  8 
+
+table(merge_v3$`AX-11643502`) 
+#  0  1  2 
+# 60 15  3 
+
+table(merge_v3$`AX-40475333`) 
+ # 0  1  2 
+ # 1  8 69 
+ 
+table(merge_v3$`AX-40901009`)
+#  0  1  2 
+#  1 18 59 
+
+table(merge_v3$`AX-13098879`) 
+#  1  2 
+# 17 61
+
+#Trans-eQTL
+
+table(merge_v3$`AX-41287435`) 
+# 0  1  2 
+# 74  2  2 
+
+table(merge_v3$`AX-41287423`) 
+# 0  1  2 
+#73  2  2
+
+table(merge_v3$`AX-16554792`) 
+# 0  1 
+#74  3 
+
+table(merge_v3$`AX-37128571`) 
+# 0  1  2 
+#67  6  2 
+
+table(merge_v3$`AX-34684881`) 
+#0  1  2 
+#69  5  2 
+
+table(merge_v3$`AX-11195262`) 
+# 0  1  2 
+# 1  3 73 
+
+
+table(merge_v3$`AX-40266581`) 
+ # 1  2 
+ # 4 72 
+
+
+table(merge_v3$`AX-11318356`) 
+#  0  1  2 
+# 66  9  2
+
+table(merge_v3$`AX-16530947`) 
+#  1  2 
+# 17 61 
+
+table(merge_v3$`AX-40266581`) 
+# 1  2 
+# 4 72 
+
+table(merge_v3$`AX-32511317`) 
+#0  1  2 
+66 11  1 
+
+table(merge_v3$`AX-12941704`) 
+# 0  1  2 
+# 1  9 68
 ```
 
