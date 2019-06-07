@@ -337,6 +337,46 @@ p1 <-ggplot(aes(y = merge_v3$TC0X000829.hg.1, x = as.factor(merge_v3$`AX-3868674
 ```
 
 ```{r}
+fit <- lm(TC11001143.hg.1~`AX-29907155`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-29907155`*diagnosis, data = merge_v3)
+# Call:
+# lm(formula = TC11001143.hg.1 ~ `AX-29907155` + age + race + gender + 
+#     diagnosissubtype + diagnosis + pc1 + pc2 + pc3 + pc4 + pc5 + 
+#     pc6 + `AX-29907155` * diagnosis, data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.9936 -0.3534 -0.0315  0.3376  1.6363 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              7.8763902  1.0411301   7.565 1.88e-10 ***
+# `AX-29907155`           -0.3322538  0.3062327  -1.085   0.2820    
+# age                     -0.0006274  0.0085373  -0.073   0.9417    
+# race                    -0.0188575  0.0851890  -0.221   0.8255    
+# gender                   0.3281437  0.3417406   0.960   0.3406    
+# diagnosissubtype         0.1672867  0.1058220   1.581   0.1188    
+# diagnosis               -0.5808736  0.2687558  -2.161   0.0344 *  
+# pc1                      0.1210129  0.9801324   0.123   0.9021    
+# pc2                      1.1943424  0.8366562   1.428   0.1583    
+# pc3                     -0.7778645  0.9055985  -0.859   0.3936    
+# pc4                      1.0143647  0.8118898   1.249   0.2161    
+# pc5                     -0.2232326  0.8261631  -0.270   0.7879    
+# pc6                      0.6128833  0.8924295   0.687   0.4947    
+# `AX-29907155`:diagnosis  0.1539919  0.1056718   1.457   0.1499    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.8072 on 64 degrees of freedom
+# Multiple R-squared:  0.1291,	Adjusted R-squared:  -0.0478 
+# F-statistic: 0.7298 on 13 and 64 DF,  p-value: 0.7275
+
+table(merge_v3$`AX-29907155`)
+ #0  1  2 
+ #6 20 52 
+p1 <-ggplot(aes(y = merge_v3$TC11001143.hg.1, x = as.factor(merge_v3$`AX-29907155`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+```
+
+```{r}
 fit <- lm(TC04001305.hg.1~`AX-14758778`+age+race+gender+diagnosissubtype+diagnosis+pc1+pc2+pc3+pc4+pc5+pc6+`AX-38686743`*diagnosis, data = merge_v3)
 # Call:
 # lm(formula = TC04001305.hg.1 ~ `AX-14758778` + age + race + gender + 
@@ -603,7 +643,7 @@ table(merge_v3$`AX-40266581`)
 
 table(merge_v3$`AX-32511317`) 
 #0  1  2 
-66 11  1 
+#66 11  1 
 
 table(merge_v3$`AX-12941704`) 
 # 0  1  2 
