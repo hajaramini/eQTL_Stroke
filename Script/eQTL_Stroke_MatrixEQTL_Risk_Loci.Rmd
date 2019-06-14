@@ -1,0 +1,97 @@
+---
+title: "eQTL_Stroke_MatrixEQTL_Risk_Loci"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#**very important to check sample name for each file to have consistency between different matrix, check every time****
+#Try eQTL analtsis by possible risk genes and loci for stroke and related disease may cuase stroke, such as WHM,  vascular brain injury, AF, CAD, ...
+
+```{r}
+#gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1 <- read.delim("C:/eQTL/GENE/Picked_Files_HTA2_275/gene_expression_275_SST-RMA-GENE-FULL-Group.SST-RMA-GENE-FULL - Group 1.TXT", row.names=1)
+Prob_ID <- read.delim("C:/eQTL/Risk_Loci/Prob_ID.txt", header=FALSE, row.names=1) #including risk coding and noncoding genes 729
+gene_expression_275 <- gene_expression_275_SST.RMA.GENE.FULL.Group.SST.RMA.GENE.FULL...Group.1[,c(1:275)]
+colnames(gene_expression_275) <- sub(x = colnames(gene_expression_275), pattern = "_HTA*.*", replacement ="") 
+gene_expression_risk <- gene_expression_275[rownames(Prob_ID),] # 729 275
+write.table(gene_expression_risk, file = "../../Input_Output/Samples_275/GE_729.txt",col.names =T, sep = "\t") #should change four samples name to consistant with covarite files.
+```
+
+```{r}
+
+AxiomGT1.calls_v2 <- read.csv("C:/eQTL/SNP/SNP_calls_275_eQTL/275_sample/AxiomGT1.calls_v2.csv", row.names=1) #628679    275
+Affy_ID_List <- read.table("C:/eQTL/Risk_Loci/Affy_ID_List_Sort.txt", quote="\"", comment.char="") #115 IDs
+Affy_ID_List_v2 <- Affy_ID_List[,1]
+SNP_calls_168 <- AxiomGT1.calls_v2[Affy_ID_List_v2,] #115 275
+SNP_calls_168_order <- SNP_calls_168[,order(colnames(SNP_calls_168))]
+write.table(SNP_calls_168_order, file = "../../Input_Output/Samples_275/SNP_sort_168.txt", col.names = T, sep = "\t") 
+write.table(SNP_calls_168, file = "../../Input_Output/Samples_275/SNP_168.txt", col.names = T, sep = "\t") #should change four samples name to consistant with covarite files.
+
+
+SNP <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP.txt", row.names = 1)
+SNP_calls_168_v2 <- SNP[Affy_ID_List_v2,] #115 351
+write.table(SNP_calls_168_v2, file = "../../Input_Output/SNP_168_v2.txt", col.names = T, sep = "\t") #for 351 sample size
+```
+
+```{r}
+base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_275/SNP_sort_168.txt", sep="") #all snps id (628679)
+
+SNP_file_name = paste(base.dir, "/Input_Output/SNP_168_v2.txt", sep="") #all snps id for 351 sample size(628679)
+
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_275/Covariate_Final_NO_Risk_Factors.txt", sep="")
+
+covariates_file_name = paste(base.dir, "/Input_Output/Covariates_Final_No_PC.txt", sep="") #try this for 351 sample size
+
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
+SNP_Location <-  paste(base.dir, "/Input_Output/SNP_Location.txt", sep="") #include all SNPs location
+expression_file_name = paste(base.dir, "/Input_Output/Samples_275/GE_729.txt", sep="") 
+
+expression_file_name = paste(base.dir, "/Input_Output/GE_mRNA_19309.txt", sep="") #try for 351 sample size 
+```
+
+```{r}
+#by running Matrix_eQTL_main for this specific gene and snp pairs no sig. eQTL found, so I will try for all mRNA conding genes with this specific snps
+```
+
+```{r}
+expression_file_name = paste(base.dir, "/Input_Output/Samples_275/GE_mRNA_19309.txt", sep="") 
+#All other files same as above files
+```
+
+```{r}
+#only found trans-eQTL with no passing FDR
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_risk_loci_1e6.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_risk_loci_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #14
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#14
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_risk_loci_1e6_merge.csv") 
+```
+
+
+
+```{r}
+#only found trans-eQTL with no passing FDR
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_risk_loci_1e6.csv")
+```
+
+```{r}
+#covariates_file_name = paste(base.dir, "/Input_Output/Samples_275/Covariate_Final_NO_PC.txt", sep="")
+eQTL_trans_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_risk_loci_1e6.csv")
+eQTL_trans_1e6_merge <- merge(eQTL_trans_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #21
+
+eQTL_trans_1e6_merge_v2 <- merge(eQTL_trans_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#21
+write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_risk_loci_1e6_merge.csv") 
+```
+
+
+```{r}
+#only found trans-eQTL with no passing FDR
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/covariate_diagnosissubtype_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_risk_loci_1e6.csv")
+```

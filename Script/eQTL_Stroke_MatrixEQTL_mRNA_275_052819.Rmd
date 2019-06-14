@@ -94,7 +94,7 @@ snps$LoadFile(SNP_file_name)
 # 
 # cat('SNPs before filtering:',nrow(snps))
 # # snps$RowReorderSimple(maf>0.05);
-# snps$RowReorder(maf>0.01);
+# snps$RowReorder(maf>0.05);
 # cat('SNPs after filtering:',nrow(snps))
 # #SNPs after filtering: 354013
 ```
