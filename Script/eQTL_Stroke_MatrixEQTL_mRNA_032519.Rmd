@@ -1525,7 +1525,6 @@ ggsave(p2, file="../../Input_Output/Plot/cis-eQTL1.jpg",width = 7, height = 5)
 ```
 
 
-
 ```{r}
 #to see the scatterplot for each SNP-gene pairs
 cols <- c("1" = "red", "4" = "blue")
@@ -2147,7 +2146,7 @@ p2 <-p1 + labs(y="IDO1 expression", x = "rs72639679 genotype", fill ="diagnosis"
 
 ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5_regline.pdf",width = 7, height = 5)
 ggsave(p2, file="../../Input_Output/Plot/cis-eQTL5_regline.jpg",width = 7, height = 5)
-**HERE**
+
 ```
 
 

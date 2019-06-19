@@ -75,7 +75,6 @@ write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/
 ```
 
 
-
 ```{r}
 #only found trans-eQTL with no passing FDR
 write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_hypertension_diabates_cholestrolemia_diagnosis/eQTL_trans_risk_loci_1e6.csv")
