@@ -10041,8 +10041,148 @@ ggsave("multi_rs2464504_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_
 ```
 
 ```{r}
-#AX-11173316 #here
+#AX-11173316
 p1 <-ggplot(aes(y = merge_v3$TC17001827.hg.1, x = as.factor(merge_v3$`AX-11173316`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
 p2 <- p1 + labs(y="ABCA6 expression", x = "rs11758921 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "AA", "1" = "AG", "2"="GG"))+scale_y_continuous(expression(paste( italic("ABCA6")," " , "expression")))
+
+p3 <-ggplot(aes(y = merge_v3$TC01002971.hg.1, x = as.factor(merge_v3$`AX-11173316`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+p4 <- p3 + labs(y="SLC16A4 expression", x = "rs11758921 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "AA", "1" = "AG", "2"="GG"))+scale_y_continuous(expression(paste( italic("SLC16A4")," " , "expression")))
+
+p5 <-ggplot(aes(y = merge_v3$TC04001036.hg.1, x = as.factor(merge_v3$`AX-11173316`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3,  xlim(c(0,1,2))) + geom_boxplot()
+p6 <- p5 + labs(y="CLNK expression", x = "rs11758921 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "AA", "1" = "AG", "2"="GG"))+scale_y_continuous(expression(paste( italic("CLNK")," " , "expression")))
+
+#save
+ggsave("multi_rs11758921_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+ggsave("multi_rs11758921_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+
+```
+
+```{r}
+#AX-16372292
+x <-merge_v3[!is.na(merge_v3$'AX-16372292'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC17001827.hg.1, x = as.factor(x$`AX-16372292`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="ABCA6 expression", x = "rs2369519 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("ABCA6")," " , "expression")))
+
+p3 <-ggplot(aes(y = x$TC02000318.hg.1, x = as.factor(x$`AX-16372292`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="EML6 expression", x = "rs2369519 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("EML6")," " , "expression")))
+
+p5 <-ggplot(aes(y = x$TC04001036.hg.1, x = as.factor(x$`AX-16372292`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p6 <-p5 + labs(y="CLNK expression", x = "rs2369519 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("CLNK")," " , "expression")))
+
+#save
+ggsave("multi_rs2369519_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+ggsave("multi_rs2369519_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+
+```
+
+```{r}
+#AX-15355229
+x <-merge_v3[!is.na(merge_v3$'AX-15355229'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC17000375.hg.1, x = as.factor(x$`AX-15355229`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="ZNF207 expression", x = "rs1063632 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("ZNF207")," " , "expression")))
+
+p3 <-ggplot(aes(y = x$TC01001640.hg.1, x = as.factor(x$`AX-15355229`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="PTPRC expression", x = "rs1063632 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("PTPRC")," " , "expression")))
+
+p5 <-ggplot(aes(y = x$TC18000998.hg.1, x = as.factor(x$`AX-15355229`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p6 <-p5 + labs(y="SMAD4 expression", x = "rs1063632 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("SMAD4")," " , "expression")))
+
+p7 <-ggplot(aes(y = x$TC0M000010.hg.1, x = as.factor(x$`AX-15355229`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p8 <-p7 + labs(y="TC0M000010.hg.1 expression", x = "rs1063632 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("TC0M000010.hg.1")," " , "expression")))
+
+p9 <-ggplot(aes(y = x$TC02004959.hg.1, x = as.factor(x$`AX-15355229`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p10 <-p9 + labs(y="MORN2 expression", x = "rs1063632 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("MORN2")," " , "expression")))
+
+#save
+ggsave("multi_rs1063632_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), ggplotGrob(p8), ggplotGrob(p10),size = "last")),width = 12, height = 15)
+ggsave("multi_rs1063632_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), ggplotGrob(p8), ggplotGrob(p10), size = "last")),width = 12, height = 15)
+```
+
+```{r}
+#AX-51270082
+x <-merge_v3[!is.na(merge_v3$'AX-51270082'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC0M000010.hg.1, x = as.factor(x$`AX-51270082`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="TC0M000010.hg.1 expression", x = "rs6787784 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TC", "2"="CC"))+scale_y_continuous(expression(paste( italic("TC0M000010.hg.1")," " , "expression")))
+
+p3 <-ggplot(aes(y = x$TC01001640.hg.1, x = as.factor(x$`AX-51270082`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="PTPRC expression", x = "rs6787784 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TC", "2"="CC"))+scale_y_continuous(expression(paste( italic("PTPRC")," " , "expression")))
+
+p5 <-ggplot(aes(y = x$TC18000998.hg.1, x = as.factor(x$`AX-51270082`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p6 <-p5 + labs(y="SMAD4 expression", x = "rs6787784 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TC", "2"="CC"))+scale_y_continuous(expression(paste( italic("SMAD4")," " , "expression")))
+
+#save
+ggsave("multi_rs6787784_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+ggsave("multi_rs6787784_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+```
+
+```{r}
+#AX-38475535
+x <-merge_v3[!is.na(merge_v3$'AX-38475535'), ]
+p1 <-ggplot(aes(y = x$TC04001036.hg.1, x = as.factor(x$`AX-38475535`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="CLNK expression", x = "rs117781420 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("CLNK")," " , "expression")))
+
+p3 <-ggplot(aes(y = x$TC02000318.hg.1, x = as.factor(x$`AX-38475535`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="EML6 expression", x = "rs117781420 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("EML6")," " , "expression")))
+
+p5 <-ggplot(aes(y = x$TC17001827.hg.1, x = as.factor(x$`AX-38475535`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p6 <-p5 + labs(y="ABCA6 expression", x = "rs117781420 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("ABCA6")," " , "expression")))
+
+#save
+ggsave("multi_rs117781420_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+ggsave("multi_rs117781420_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), ggplotGrob(p6), size = "last")),width = 12, height = 15)
+
+```
+
+```{r}
+#AX-38578625
+p1 <-ggplot(aes(y = merge_v3$TC01000514.hg.1, x = as.factor(merge_v3$`AX-38578625`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3 ,xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="ZNF684 expression", x = "rs148991762 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "CC", "1" = "CA", "2"="AA"))+scale_y_continuous(expression(paste( italic("ZNF684")," " , "expression")))
+
+p3 <-ggplot(aes(y = merge_v3$TC09001542.hg.1, x = as.factor(merge_v3$`AX-38578625`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3 ,xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="C5 expression", x = "rs148991762 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "CC", "1" = "CA", "2"="AA"))+scale_y_continuous(expression(paste( italic("C5")," " , "expression")))
+
+#save
+ggsave("multi_rs148991762_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+ggsave("multi_rs148991762_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+```
+
+```{r}
+p1 <-ggplot(aes(y = merge_v3$TC17001827.hg.1, x = as.factor(merge_v3$`AX-11577079`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3 ,xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="ABCA6 expression", x = "rs6665585 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "AA", "1" = "AG", "2"="GG"))+scale_y_continuous(expression(paste( italic("ABCA6")," " , "expression")))
+
+p3 <-ggplot(aes(y = merge_v3$TC04001036.hg.1, x = as.factor(merge_v3$`AX-11577079`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3 ,xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="CLNK expression", x = "rs6665585 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "AA", "1" = "AG", "2"="GG"))+scale_y_continuous(expression(paste( italic("CLNK ")," " , "expression")))
+
+#save
+ggsave("multi_rs6665585_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+ggsave("multi_rs6665585_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+```
+
+```{r}
+#AX-38554997
+p1 <-ggplot(aes(y = merge_v3$TC01001640.hg.1, x = as.factor(merge_v3$`AX-38554997`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3 ,xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="PTPRC expression", x = "rs149536248 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TC", "2"="CC"))+scale_y_continuous(expression(paste( italic("PTPRC")," " , "expression")))
+
+p3 <-ggplot(aes(y = merge_v3$TC0M000010.hg.1, x = as.factor(merge_v3$`AX-38554997`), fill = as.factor(merge_v3$diagnosis)), data = merge_v3 ,xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="TC0M000010.hg.1 expression", x = "rs149536248 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TC", "2"="CC"))+scale_y_continuous(expression(paste( italic("TC0M000010.hg.1")," " , "expression")))
+
+#save
+ggsave("multi_rs149536248_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+ggsave("multi_rs149536248_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+```
+
+```{r}
+#AX-42755741
+x <-merge_v3[!is.na(merge_v3$'AX-42755741'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC09000560.hg.1, x = as.factor(x$`AX-42755741`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="UGCG expression", x = "rs12399124 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("UGCG")," " , "expression")))
+
+
+p3 <-ggplot(aes(y = x$TC01002971.hg.1, x = as.factor(x$`AX-42755741`), fill = as.factor(x$diagnosis)), data = x ,xlim(c(0,1,2))) + geom_boxplot()
+p4 <-p3 + labs(y="SLC16A4 expression", x = "rs12399124 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "GG", "1" = "GA", "2"="AA"))+scale_y_continuous(expression(paste( italic("SLC16A4")," " , "expression")))
+
+#save
+ggsave("multi_rs12399124_trans-eQTL.png", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
+ggsave("multi_rs12399124_trans-eQTL.pdf", path = "../../Input_Output/Plot/Sample_275/Multi_Figure/", plot = grid.draw(rbind(ggplotGrob(p2), ggplotGrob(p4), size = "last")),width = 12, height = 15)
 ```
 
