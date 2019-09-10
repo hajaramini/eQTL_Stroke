@@ -1884,6 +1884,214 @@ ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL37_scattererrorbar.p
 ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL37_scattererrorbar.jpg",width = 6, height = 4)
 ```
 
+```{r}
+# 21 snps	gene	X	statistic	pvalue	FDR	beta	Gene.Symbol	Chromosome.x	Start	Stop	locus.type	dbSNP.RS.ID	Chromosome.y	Physical.Position	Allele.A	Allele.B	Ref.Allele	Alt.Allele
+# 21	AX-11608684	TC11001143.hg.1		-4.659384975	5.04E-06	0.976902943	-0.214862121	NRGN 5.04E-06	0.976902943	124609829	124617869	Coding	rs7129315	11	124977280	T	C	T	C
+
+
+ #  0   1   2 NA
+ # 86 136  52 1
+x <- merge_v3$`AX-11608684`
+#diagnosissubtype	gender	race	age	historyhypertension	historydiabetesmellitus	historyhypercholestrolemia	pc1	pc2	pc3	pc4	diagnosis
+# 4	2
+# 10	2
+# 13	2
+# 18	2
+# 53	2
+# 55	2
+# 62	2
+# 63	2
+# 75	2
+# 77	2
+# 80	2
+# 84	2
+# 93	2
+# 108	2
+# 109	2
+# 110	2
+# 113	2
+# 116	2
+# 117	2
+# 122	2
+# 127	2
+# 145	2
+# 146	2
+# 148	2
+# 149	2
+# 150	2
+# 153	2
+# 155	2
+# 156	2
+# 158	2
+# 165	2
+# 171	2
+# 172	2
+# 176	2
+# 179	2
+# 184	2
+# 193	2
+# 211	2
+# 218	2
+# 226	2
+# 228	2
+# 230	2
+# 239	2
+# 250	2
+# 251	2
+# 254	2
+# 260	2
+# 266	2
+# 267	2
+# 268	2
+# 269	2
+# 275	2
+y <- merge_v3$`AX-29907155`== 0 & merge_v3$`AX-11608684` == 2 #both CC genotype and NRGN gene
+View(y)
+# 53
+# TRUE
+# 75
+# TRUE
+# 77
+# TRUE
+# 84
+# TRUE
+# 122
+# TRUE
+# 127
+# TRUE
+# 148
+# TRUE
+# 156
+# TRUE
+# 226
+# TRUE
+# 250
+# TRUE
+# 251
+# TRUE
+# 254
+# TRUE
+# 266
+# TRUE
+
+```
+
+```{r}
+#Try without running merge_v3$diagnosis <- to_factor(merge_v3$diagnosis)
+fit <- lm(TC11001143.hg.1~`AX-11608684`+age+race+gender+diagnosis+diagnosissubtype+pc1+pc2+pc3+pc4+`AX-11608684`*diagnosis, data = merge_v3)
+summary (fit)
+# Call:
+# lm(formula = TC11001143.hg.1 ~ `AX-11608684` + age + race + gender + 
+#     diagnosis + diagnosissubtype + pc1 + pc2 + pc3 + pc4 + `AX-11608684` * 
+#     diagnosis, data = merge_v3)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.6258 -0.4998 -0.1073  0.3531  3.0649 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              6.207289   0.418061  14.848  < 2e-16 ***
+# `AX-11608684`            0.577648   0.134406   4.298 2.43e-05 ***
+# age                      0.003041   0.003839   0.792   0.4290    
+# race                     0.079232   0.057349   1.382   0.1683    
+# gender                   0.193034   0.100714   1.917   0.0564 .  
+# diagnosis                0.172366   0.101220   1.703   0.0898 .  
+# diagnosissubtype         0.057786   0.055817   1.035   0.3015    
+# pc1                      2.306371   1.015560   2.271   0.0240 *  
+# pc2                      1.790532   0.892404   2.006   0.0458 *  
+# pc3                     -1.530965   1.010523  -1.515   0.1310    
+# pc4                     -0.879045   0.805497  -1.091   0.2761    
+# `AX-11608684`:diagnosis -0.214472   0.046178  -4.644 5.40e-06 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7884 on 262 degrees of freedom
+#   (1 observation deleted due to missingness)
+# Multiple R-squared:  0.1425,	Adjusted R-squared:  0.1065 
+# F-statistic: 3.959 on 11 and 262 DF,  p-value: 2.446e-05
+
+min(merge_v3$TC11001143.hg.1) #6.298015
+max(merge_v3$TC11001143.hg.1) #11.25922
+```
+
+
+```{r}
+x <-merge_v3[!is.na(merge_v3$'AX-11608684'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC11001143.hg.1, x = as.factor(x$`AX-11608684`), fill = as.factor(x$diagnosis)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="NRGN expression", x = "rs7129315 genotype", fill ="diagnosis")+scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete(labels =c("0" = "TT", "1" = "TC", "2"="CC"))+scale_y_continuous(expression(paste( italic("NRGN")," " , "expression")))+expand_limits(y=c(6,12))
+
+
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21.pdf",width = 6, height = 4)
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21.jpg",width = 6, height = 4)
+
+```
+
+
+```{r}
+#to see the scatterplot for each SNP-gene pairs
+cols <- c("1" = "red", "4" = "blue")
+p1 <- ggplot(data = x, aes(x=as.factor(x$`AX-11608684`), y=x$TC11001143.hg.1)) + geom_point(alpha = 0.5, size = 3, aes(colour =as.factor(x$diagnosis))) 
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs7129315 genotype", fill ="diagnosis")+scale_colour_manual(name ="diagnosis", values = cols, breaks = c("1", "4"),labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("TT", "TC", "CC"))+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ expand_limits(y=c(6,12))
+
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_point.pdf",width = 6, height = 4)
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_point.jpg",width = 6, height = 4)
+
+```  
+
+```{r}
+#scatterplot with drawing line "http://www.sthda.com/english/wiki/ggplot2-scatter-plots-quick-start-guide-r-software-and-data-visualization"
+#change that to show the case and control only based on the colour not shape
+p1 <- ggplot(x, aes(x=x$`AX-11608684`, y=x$TC11001143.hg.1, colour=as.factor(x$diagnosis), xlim(c(0,1,2))))+
+  geom_point() + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+  scale_color_manual(values=cols, name = "diagnosis",breaks = c("1", "4"),labels = c("IS", "VRFC"))+
+  theme(legend.position="top")+ expand_limits(y=c(6,12))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs7129315 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression"))) 
+
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_regline.pdf",width = 6, height = 4)
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_regline.jpg",width = 6, height = 4)
+
+```
+
+```{r}
+#for merge_v3 data
+#merge_v3$diagnosis <- as.factor(merge_v3$diagnosis)
+df <-data_summary(x,varname = "TC11001143.hg.1", groupnames =c("diagnosis","`AX-11608684`")) #Na in sd is due to small number of samples in that case, so we could see the NA
+# Convert genotype to a factor variable
+df$`AX-11608684` <- as.factor(df$`AX-11608684`)
+```
+
+```{r}
+#Barplot with error bars
+p1<- ggplot(df, aes(x=factor(df$`AX-11608684`), y=df$TC11001143.hg.1, fill=as.factor(df$diagnosis))) + 
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=TC11001143.hg.1-sd, ymax=TC11001143.hg.1+sd), width=.2,
+                 position=position_dodge(.9))+ expand_limits(y=c(6,10))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs7129315 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ scale_fill_discrete(name = "diagnosis", labels = c("IS", "VRFC"))+scale_x_discrete( breaks = c("0", "1", "2"),labels = c("TT", "TC", "CC"))
+
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_boxerrorbar.pdf",width = 6, height = 4)
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_boxerrorbar.jpg",width = 6, height = 4)
+```
+
+
+```{r}
+#scatterplot with error bars
+p1 <- ggplot(df, aes(x=as.factor(df$`AX-11608684`), y=df$TC11001143.hg.1, group=as.factor(df$diagnosis), color =as.factor(df$diagnosis)))+
+geom_line(aes(group=df$diagnosis))+
+geom_errorbar(aes(ymin=TC11001143.hg.1-sd, ymax=TC11001143.hg.1+sd),width=.2)+ expand_limits(y=c(6,10))
+
+p2 <-p1 + labs(y="NRGN expression", x = "rs7129315 genotype", fill ="diagnosis")+scale_y_continuous(expression(paste(italic("NRGN")," " , "expression")))+ scale_color_discrete(name = "diagnosis", breaks = c("1","4"), labels = c("IS", "VRFC"))+ scale_x_discrete( breaks = c("0", "1", "2"),labels = c("TT", "TC", "CC"))
+
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_scattererrorbar.pdf",width = 6, height = 4)
+ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL21_scattererrorbar.jpg",width = 6, height = 4)
+```
+
+
 
 ```{r}
 
@@ -2022,7 +2230,6 @@ ggsave(p2, file="../../Input_Output/Plot/Sample_275/cis-eQTL37_scattererrorbar.j
 # merge_v3$`AX-83404926`
 #  0   1   2 
 #  66 125  84 
-
 
 ```
 
