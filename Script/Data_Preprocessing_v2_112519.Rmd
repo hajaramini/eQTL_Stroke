@@ -1,0 +1,493 @@
+---
+title: "Data_Preprocessing_v2_112519"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#This script including the analysis we want to perform for revised version of the manuscript
+
+```{r}
+#check match control for more factors
+#get 275 samples
+CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels <- read.csv("C:/eQTL/Primary_Files/CTSC0218BloodGenomic-EQTL351_DATA_LABELS_2019-11-14_1007_labels.csv")
+
+CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19 <- read.csv("C:/eQTL/Primary_Files/CTSC0218BloodGenomic-EQTL351_DATA_LABELS_2019-11-14_1007_labels_11_25_19.csv") #1571   22
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_275/GE_mRNA_19309.txt", header=FALSE) # to have the 275 samples
+rownames(CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19) <- CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19$HospID
+
+CTSC0218BloodGenomic_275 <- CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19[colnames(GE_mRNA_19309[-1]),] #275 22
+#save
+write.table(CTSC0218BloodGenomic_275, file = "../../../Primary_Files/CTSC0218BloodGenomic_275.txt",col.names =T, sep = "\t")
+```
+
+```{r}
+#Standard errors for the estimates (need this for poawerEQTL.SLR function)
+
+eQTL$cis$eqtls$beta_se <- eQTL$cis$eqtls$beta / eQTL$cis$eqtls$statistic
+#save
+write.csv(eQTL$cis$eqtls$beta_se,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6_se.csv")
+
+eQTL$trans$eqtls$beta_se <- eQTL$trans$eqtls$beta / eQTL$trans$eqtls$statistic
+#save
+write.csv(eQTL$trans$eqtls$beta_se,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_dist_1e6_se.csv")
+```
+
+```{r}
+#get the SNP with MAF for cis and trans
+SNP_calls_275_table <- read.delim("C:/eQTL/SNP/275_last_try/SNP_calls_275_table.txt", row.names = 1)
+#SNP_cis <- SNP_calls_275_table[eQTL$cis$eqtls$snps,] #38 48
+x <- eQTL$cis$eqtls$snps
+y <- as.character(x)
+SNP_cis <- SNP_calls_275_table[y,]
+SNP_cis_MAF <- SNP_cis$MinorAlleleFrequency
+#  [1] 0.2260 0.0586 0.0782 0.0534 0.0600 0.0876 0.1690 0.0745 0.2730 0.3040 0.0564 0.4870 0.0800 0.0693 0.0964 0.0639 0.0891
+# [18] 0.3190 0.1490 0.0625 0.4380 0.0564 0.0673 0.1150 0.1130 0.1000 0.0945 0.3180 0.4530 0.2840 0.0564 0.0800 0.0836 0.2840
+# [35] 0.0657 0.1310 0.4670 0.3110
+
+SNP_trans <- SNP_calls_275_table[eQTL$trans$eqtls$snps,] #70 48
+z <- eQTL$trans$eqtls$snps
+w <- as.character(z)
+SNP_trans <- SNP_calls_275_table[w,]
+SNP_trans_MAF <- SNP_trans$MinorAlleleFrequency
+# [1] 0.0603 0.0598 0.0509 0.0600 0.0600 0.0602 0.0598 0.0675 0.0598 0.0769 0.0600 0.0940 0.0511 0.0690 0.0545 0.0513 0.0522
+# [18] 0.0641 0.0509 0.0690 0.0598 0.0684 0.0623 0.0590 0.0641 0.0556 0.0690 0.0940 0.0657 0.0509 0.0623 0.0545 0.0545 0.0522
+# [35] 0.0659 0.0566 0.0513 0.0726 0.0982 0.0509 0.0509 0.0782 0.0636 0.0566 0.0598 0.0509 0.0940 0.0641 0.0618 0.0623 0.0556
+# [52] 0.0782 0.0627 0.0522 0.0641 0.0556 0.0782 0.0641 0.0598 0.0545 0.0673 0.0509 0.0556 0.0623 0.0598 0.0513 0.0709 0.0566
+# [69] 0.0527 0.0985
+```
+
+
+```{r}
+# check the power of eQTL analysis based on the "Power, false discovery rate and Winner’s Curse in eQTL studies paper"
+#By looking at the Figure 3 we can see the MAF: 5% with Effect size of ~1.2 for 275 samples power would be more than 80%
+#we need to calculate for each SNP-gene pairs separately
+#install.packages(powerEQTL)
+#library(powerEQTL)
+#powerEQTL.SLR for Power Calculation For EQTL Analysis Based On Simple Linear Regression
+#for cis-eQTL 
+
+powerEQTL.SLR(
+  MAF = 0.22,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = 0.31,
+  myntotal = 275,
+  mystddev = 0.054,
+  verbose = TRUE)
+#1 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.13 got 1)
+```
+
+```{r}
+powerEQTL.SLR(
+  MAF = 0.058,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = -0.527,
+  myntotal = 275,
+  mystddev = 0.094,
+  verbose = TRUE)
+#2 #1 almost 100% power 
+```
+
+```{r}
+powerEQTL.SLR(
+  MAF = 0.058,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = -0.527,
+  myntotal = 275,
+  mystddev = 0.094,
+  verbose = TRUE)
+#2 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.18 got 1)
+```
+
+```{r}
+powerEQTL.SLR(
+  MAF = 0.078,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = -0.162,
+  myntotal = 275,
+  mystddev = 0.029,
+  verbose = TRUE)
+#3 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.1 got 1)
+```
+
+```{r}
+powerEQTL.SLR(
+  MAF = 0.053,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = 0.493,
+  myntotal = 275,
+  mystddev = 0.092,
+  verbose = TRUE)
+#4 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.16 got 1)
+```
+
+```{r}
+powerEQTL.SLR(
+  MAF = 0.06,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = 0.176,
+  myntotal = 275,
+  mystddev = 0.034,
+  verbose = TRUE)
+#5 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.06 got 1)
+```
+
+```{r}
+powerEQTL.SLR(
+  MAF = 0.467,
+  typeI = 0.05,
+  nTests = 4191481, #for cis-eQTL
+  slope = 0.028,
+  myntotal = 275,
+  mystddev = 0.0063,
+  verbose = TRUE)
+#37 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.02 got 1), min slope in cis-eQTL
+```
+
+
+```{r}
+#for trans-eQTL 
+
+powerEQTL.SLR(
+  MAF = 0.0603,
+  typeI = 0.05,
+  nTests = 5302230663, #for trans-eQTL
+  slope = 0.349,
+  myntotal = 275,
+  mystddev = 0.028,
+  verbose = TRUE)
+#1 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.12 got 1)
+```
+
+```{r}
+#for trans-eQTL 
+
+powerEQTL.SLR(
+  MAF = 0.098,
+  typeI = 0.05,
+  nTests = 5302230663, #for trans-eQTL
+  slope = -0.095,
+  myntotal = 275,
+  mystddev = 0.01,
+  verbose = TRUE)
+#1 almost 100% power (got error because with this mystddev the power is more than 1, by changing it to 0.06 got 1), min slope in trans-eQTL
+```
+
+```{r}
+#having the eQTL for finding the SNP * gender 
+#genotyping for 168 sample (all IS samples from 351 samples)
+#gene expression for 168 samples
+#PC analysis for 168 samples
+#Plink for having PCs for 168 samples
+plink <- read.table("C:/eQTL/Plink_PCA/experiment_168/Plink_168_IS_Samples/plink.eigenvec", quote="\"", comment.char="") #168 22
+#by checking the plink.eigenval I found first seven PCa accounting 52.13%
+# 6.13314
+# 3.28796
+# 1.21343
+# 1.15821
+# 1.14242
+# 1.12613
+# 1.10579
+# 1.1046
+# 1.09784
+# 1.09391
+# 1.0877
+# 1.08619
+# 1.08069
+# 1.07798
+# 1.074
+# 1.06152
+# 1.0603
+# 1.03927
+# 1.03509
+# 1.02318 total : 29.089
+plink_v2 <- plink[,c(2,3,4,5,6,7,8,9)]
+row.names(plink_v2) <- plink_v2$V2
+plink_v3 <- plink_v2[,c(2,3,4,5,6,7,8)] #168 samples with 7 PCs
+write.table(plink_v3, file = "../../../Plink_PCA/experiment_168/Plink_168_IS_Samples/Plink_PCs_168.txt", col.names = T, sep = "\t")
+
+```
+
+```{r}
+#covariate file
+Covariates_Final_transpose <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/Covariates_Final_transpose.csv", row.names=1)
+Covariates_Final_transpose_168 <- Covariates_Final_transpose[rownames(plink_v3),] #168 12
+write.table(Covariates_Final_transpose_168, file = "../../Input_Output/Samples_168/Covariates_Final_transpose_168.txt", col.names = T, sep = "\t") #with PCs from 351 I need to change the pcs value with plink_v3 files the Final file name "Covariates_Final_transpose_168_IS.txt"
+#there is no significant differences for VRF between male and female
+```
+
+```{r}
+#create SNP.txt for 168 samples
+SNP_168_v2 <- read.delim("C:/eQTL/SNP/168_try/SNP_168_v2.txt", row.names=1) #628679 168
+SNP_168_v2[SNP_168_v2 == -1] <- NA # -1 in our data is equal missing data
+#dim(AxiomGT1.calls_v2_sort)
+#library("dplyr")
+SNP_168_v2_sort <- SNP_168_v2 %>% 
+    select(sort(names(.)))
+
+#Outlier in genotype. call rate (CR), MAF & H.W.p.value
+SNP_calls_168_table <- read.delim("C:/eQTL/SNP/168_try/IS_168_samples/SNP_calls_168_table.txt", row.names = 1) #628679 48, including MAF, CR, HW and SNP id for each SNPs
+
+#Filter SNPs MAF > 5%
+SNP_calls_168_table_filter <- SNP_calls_168_table[SNP_calls_168_table$MinorAlleleFrequency > 0.05 & SNP_calls_168_table$CR > 95 & SNP_calls_168_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #277102  48
+
+#Filter SNPs MAF > 8%
+SNP_calls_168_table_filter_v2 <- SNP_calls_168_table[SNP_calls_168_table$MinorAlleleFrequency > 0.08 & SNP_calls_168_table$CR > 95 & SNP_calls_168_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #245345  48
+
+#Filter SNPs MAF > 10%
+SNP_calls_168_table_filter_v3 <- SNP_calls_168_table[SNP_calls_168_table$MinorAlleleFrequency > 0.1 & SNP_calls_168_table$CR > 95 & SNP_calls_168_table$H.W.p.Value > 0.0000005,] #I think we need to filter based on H.W (sample size), #225697  48
+
+
+SNP_calls_168_table_filter_id <- row.names(SNP_calls_168_table_filter)
+SNP_calls_168_table_filter_v2_id <- row.names(SNP_calls_168_table_filter_v2)
+SNP_calls_168_table_filter_v3_id <- row.names(SNP_calls_168_table_filter_v3)
+#save
+write.table(SNP_calls_168_table_filter_id, file = "../../Input_Output/Samples_168/SNP_calls_168_table_filter_id", col.names = T, sep = "\t")
+write.table(SNP_calls_168_table_filter_v2_id, file = "../../Input_Output/Samples_168/SNP_calls_168_table_filter_v2_id", col.names = T, sep = "\t")
+write.table(SNP_calls_168_table_filter_v3_id, file = "../../Input_Output/Samples_168/SNP_calls_168_table_filter_v3_id", col.names = T, sep = "\t")
+
+
+#save the MAF > 0.05, CR>95 and H.W.p.Value > 0.0000005
+
+SNP_after_filter <- SNP_168_v2[SNP_calls_168_table_filter_id,] #277102 168
+
+SNP_after_filter_sort <- SNP_after_filter %>% 
+    select(sort(names(.)))
+
+write.table(SNP_after_filter_sort, file = "../../Input_Output/Samples_168/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_v2.txt", col.names = T, sep = "\t")
+
+#save the MAF > 0.08, CR>95 and H.W.p.Value > 0.0000005
+
+SNP_after_filter_v2 <- SNP_168_v2[SNP_calls_168_table_filter_v2_id,] #245345 168
+
+SNP_after_filter_v2_sort <- SNP_after_filter_v2 %>% 
+    select(sort(names(.)))
+
+write.table(SNP_after_filter_v2_sort, file = "../../Input_Output/Samples_168/SNP_CRmore95_MAFmore0.08_HWEmore0.0000005_v2.txt", col.names = T, sep = "\t")
+
+#save the MAF > 0.1, CR>95 and H.W.p.Value > 0.0000005
+
+SNP_after_filter_v3 <- SNP_168_v2[SNP_calls_168_table_filter_v3_id,] #225697 168
+
+SNP_after_filter_v3_sort <- SNP_after_filter_v3 %>% 
+    select(sort(names(.)))
+
+write.table(SNP_after_filter_v3_sort, file = "../../Input_Output/Samples_168/SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2.txt", col.names = T, sep = "\t")
+```
+
+
+```{r}
+#create GE.txt for 168 samples
+gene_expression_168 <- read.delim("C:/eQTL/GENE/HTA2_CEL_168/gene_expression_168.SST-RMA-GENE-FULL - Group 1.SST-RMA-GENE-FULL - Group 1.TXT", row.names=1)
+colnames(gene_expression_168) <- sub(x = colnames(gene_expression_168), pattern = "_HTA*.*", replacement ="")
+#dim(gene_expression_168) 70523   208
+colnames(gene_expression_168)
+GE <- gene_expression_168[,c(1:168)]
+dim(GE) # 70523   168
+write.table(GE, file = "../../Input_Output/Samples_168/GE.txt",col.names = T, sep = "\t")
+
+```
+
+```{r}
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_275/GE_mRNA_19309.txt", row.names=1)
+GE_mRNA_19309_168 <- GE[rownames(GE_mRNA_19309),] #19309   168
+write.table(GE_mRNA_19309_168, file = "../../Input_Output/Samples_168/GE_mRNA_19309.txt",col.names =T, sep = "\t") #change the order of column 760 with 760_2 in both GE and GE_mRNA_19309 for the sort to be consistant with other input matrix
+```
+
+```{r}
+#covariate
+Covariates_NOVRFC_168_IS <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/Covariates_NOVRFC_168_IS.txt", row.names=1)
+Covariates_NOVRFC_168_IS_sort <- Covariates_NOVRFC_168_IS %>% 
+    select(sort(names(.)))
+write.table(Covariates_NOVRFC_168_IS_sort, file = "../../Input_Output/Samples_168/Covariates_NOVRFC_168_IS_sort.txt",col.names = T, sep = "\t")
+
+```
+
+```{r}
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_168/SNP_CRmore95_MAFmore0.05_HWEmore0.0000005_v2.txt", sep="") 
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_168/Covariates_NOVRFC_168_IS_sort.txt", sep="") #need sample as colnames
+gene_location_file_name = paste(base.dir, "/Input_Output/Gene_Location.txt", sep="")
+SNP_Location <-  paste(base.dir, "/Input_Output/SNP_Location.txt", sep="") #include all SNPs location
+expression_file_name = paste(base.dir, "/Input_Output/Samples_168/GE_mRNA_19309.txt", sep="")
+```
+
+```{r}
+#Here we want to analyze eQTL on the 168 samples for only mRNA coding genes, with this model
+#y=α+β1(SNP)+β2(sex)+β3(age)+β4(race)+β5(diagnosis subtype)+β6(SNP ✕ sex)+error term.
+#running matrixeQTL from other script for:
+#SNP with MAF 0.05 277102
+#gene 19309
+#covariate
+```
+
+
+```{r}
+#updated merge_v3 for this analysis
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/GE_mRNA_19309.txt", row.names=1)
+GE_mRNA_19309_t <- t(GE_mRNA_19309)
+SNP_after_filter_sort_t <- t(SNP_after_filter_sort)
+Covariates_NOVRFC_168_IS_sort_t <- t(Covariates_NOVRFC_168_IS_sort)
+merge <-cbind(GE_mRNA_19309_t,SNP_after_filter_sort_t)
+merge_v2 <- cbind(merge,Covariates_NOVRFC_168_IS_sort_t)
+merge_v3 <- as.data.frame(merge_v2) #168 296421
+save(merge_v3, file = "../../Input_Output/RData/merge_final_168.RData")
+
+```
+
+```{r}
+#check the result from MatrixeQTL
+#first
+fit <- lm(TC06001803.hg.1~`AX-35822503`+age+race+sex+diagnosissubtype+PC1+PC2+PC3+PC4+PC5+PC6+`AX-35822503`*sex, data = merge_v3)
+summary (fit)
+# lm(formula = TC06001803.hg.1 ~ `AX-35822503` + age + race + sex + 
+#     diagnosissubtype + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + `AX-35822503` * 
+#     sex, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.38033 -0.11296 -0.03159  0.06777  0.51932 
+# 
+# Coefficients:
+#                    Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)        2.721253   0.206570  13.174  < 2e-16 ***
+# `AX-35822503`      0.481953   0.099362   4.850 2.99e-06 ***
+# age                0.001822   0.001154   1.580   0.1163    
+# race              -0.019423   0.012909  -1.505   0.1345    
+# sex                0.842357   0.136356   6.178 5.55e-09 ***
+# diagnosissubtype  -0.000923   0.011749  -0.079   0.9375    
+# PC1               -0.375402   0.208259  -1.803   0.0734 .  
+# PC2               -0.192107   0.190291  -1.010   0.3143    
+# PC3               -0.010983   0.183970  -0.060   0.9525    
+# PC4               -0.243091   0.178952  -1.358   0.1763    
+# PC5                0.104775   0.182394   0.574   0.5665    
+# PC6               -0.039816   0.182932  -0.218   0.8280    
+# `AX-35822503`:sex -0.441978   0.072275  -6.115 7.61e-09 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1783 on 154 degrees of freedom
+#   (1 observation deleted due to missingness)
+# Multiple R-squared:  0.2766,	Adjusted R-squared:  0.2203 
+# F-statistic: 4.907 on 12 and 154 DF,  p-value: 7.816e-07
+
+```
+
+```{r}
+fit <- lm(TC01001640.hg.1~`AX-11150737`+age+race+sex+diagnosissubtype+PC1+PC2+PC3+PC4+PC5+PC6+`AX-11150737`*sex, data = merge_v3)
+Call:
+lm(formula = TC01001640.hg.1 ~ `AX-11150737` + age + race + sex + 
+    diagnosissubtype + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + `AX-11150737` * 
+    sex, data = merge_v3)
+
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.59876 -0.08207  0.02872  0.08564  0.46004 
+# 
+# Coefficients:
+#                     Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)       17.8725756  0.1111376 160.815  < 2e-16 ***
+# `AX-11150737`      0.8716687  0.1645241   5.298 3.95e-07 ***
+# age                0.0009309  0.0011928   0.780    0.436    
+# race              -0.0010297  0.0133519  -0.077    0.939    
+# sex               -0.0116847  0.0326093  -0.358    0.721    
+# diagnosissubtype   0.0051157  0.0120930   0.423    0.673    
+# PC1                0.0100804  0.2134703   0.047    0.962    
+# PC2                0.2604073  0.1939771   1.342    0.181    
+# PC3                0.0987250  0.1892943   0.522    0.603    
+# PC4                0.1738273  0.1847562   0.941    0.348    
+# PC5                0.0630428  0.1870788   0.337    0.737    
+# PC6                0.0553023  0.1885518   0.293    0.770    
+# `AX-11150737`:sex -0.8608466  0.1424807  -6.042 1.09e-08 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1841 on 155 degrees of freedom
+# Multiple R-squared:  0.2315,	Adjusted R-squared:  0.172 
+# F-statistic: 3.892 on 12 and 155 DF,  p-value: 3.207e-05
+```
+
+```{r}
+#save MAF 5%
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore5%.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore5%.csv")
+ 
+#eQTL$cis$ntests
+#[1] 4230498
+#eQTL$trans$ntests
+#[1] 5346332020
+```
+
+```{r}
+#cis
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL$cis$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #117 11
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#117 18
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore5%_merge.csv")
+```
+
+
+```{r}
+#trans
+eQTL_trans_dist_1e6_merge <- merge(eQTL$trans$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) # 631  11
+eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#631 18
+write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore5%_merge.csv")
+```
+
+
+```{r}
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_168/SNP_CRmore95_MAFmore0.08_HWEmore0.0000005_v2.txt", sep="") #245345
+```
+
+
+```{r}
+#updated merge_v3 for this analysis
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/GE_mRNA_19309.txt", row.names=1)
+GE_mRNA_19309_t <- t(GE_mRNA_19309)
+SNP_after_filter_sort_t <- t(SNP_after_filter_sort)
+Covariates_NOVRFC_168_IS_sort_t <- t(Covariates_NOVRFC_168_IS_sort)
+merge <-cbind(GE_mRNA_19309_t,SNP_after_filter_sort_t)
+merge_v2 <- cbind(merge,Covariates_NOVRFC_168_IS_sort_t)
+merge_v3 <- as.data.frame(merge_v2) #168 296421
+save(merge_v3, file = "../../Input_Output/RData/merge_final_168.RData")
+
+```
+
+```{r}
+#save MAF 8%
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore8%.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore8%.csv")
+
+#eQTL$cis$ntests
+#[1] 3739621
+#eQTL$trans$ntests
+#[1] 4733626984
+```
+
+```{r}
+#**HERE**
+#cis
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL$cis$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #117 11
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#117 18
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore5%_merge.csv")
+```
+
+
+```{r}
+#trans
+eQTL_trans_dist_1e6_merge <- merge(eQTL$trans$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) # 631  11
+eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#631 18
+write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore5%_merge.csv")
+```

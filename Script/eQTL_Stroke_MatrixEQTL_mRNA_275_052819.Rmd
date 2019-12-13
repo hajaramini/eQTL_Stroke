@@ -151,7 +151,26 @@ min.pv.by.genesnp = FALSE,
 noFDRsaveMemory = FALSE)
 
 unlink(output_file_name_tra);
-unlink(output_file_name_cis);
+unlink(output_file_name_cis); 
+```
+
+```{r}
+#Standard errors for the estimates
+
+eQTL$cis$eqtls$beta_se <- eQTL$cis$eqtls$beta / eQTL$cis$eqtls$statistic
+#save
+write.csv(eQTL$cis$eqtls$beta_se,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6_se.csv")
+
+eQTL$trans$eqtls$beta_se <- eQTL$trans$eqtls$beta / eQTL$trans$eqtls$statistic
+#save
+write.csv(eQTL$trans$eqtls$beta_se,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_dist_1e6_se.csv")
+
+write.csv(eQTL$cis$eqtls,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_cis_dist_1e6_withse.csv") # copy and poaste MAF in this file
+
+eQTL$trans$eqtls$beta_se <- eQTL$trans$eqtls$beta / eQTL$trans$eqtls$statistic
+
+write.csv(eQTL$trans$eqtls,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/eQTL_trans_dist_1e6_withse.csv")  # copy and poaste MAF in this file
+
 ```
 
 ```{r}
@@ -185,7 +204,6 @@ write.csv(eQTL_trans_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/
 #try with y=α+β1(SNP)+β2(sex)+β3(age)+β4(race)+β5(diagnosis subtype)+β6(diagnosis)+β7(SNP ✕ diagnosis)+error term., with Covariate_Final_NO_PC_NO_Risk_Factors.txt
 covariates_file_name = paste(base.dir, "/Input_Output/Samples_275/Covariate_Final_NO_PC_NO_Risk_Factors.txt", sep="") #5rows
 ```
-
 
 ```{r}
 #check for coding genes
