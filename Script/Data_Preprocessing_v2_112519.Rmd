@@ -475,19 +475,120 @@ write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sa
 ```
 
 ```{r}
-#**HERE**
 #cis
 #merge two dataframe to add more info. on the final result (eQTL_step*)
 #load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
-eQTL_cis_dist_1e6_merge <- merge(eQTL$cis$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #117 11
-eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#117 18
-write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore5%_merge.csv")
+#eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore8%.csv")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #67 12
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#67 19
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore8%_merge.csv")
 ```
 
 
 ```{r}
 #trans
-eQTL_trans_dist_1e6_merge <- merge(eQTL$trans$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) # 631  11
-eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#631 18
-write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore5%_merge.csv")
+eQTL_trans_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore8%.csv")
+eQTL_trans_dist_1e6_merge <- merge(eQTL_trans_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) # 71  12
+eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#71 19
+write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore8%_merge.csv")
 ```
+
+```{r}
+#updated merge_v3 for this analysis
+#GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/GE_mRNA_19309.txt", row.names=1)
+#GE_mRNA_19309_t <- t(GE_mRNA_19309)
+SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/SNP_CRmore95_MAFmore0.08_HWEmore0.0000005_v2.txt", row.names=1)
+SNP_after_filter_sort_t <- t(SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2)
+#Covariates_NOVRFC_168_IS_sort <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/Covariates_NOVRFC_168_IS_sort.txt", row.names=1) #need sample as colnames
+#Covariates_NOVRFC_168_IS_sort_t <- t(Covariates_NOVRFC_168_IS_sort)
+merge <-cbind(GE_mRNA_19309_t,SNP_after_filter_sort_t)
+merge_v2 <- cbind(merge,Covariates_NOVRFC_168_IS_sort_t)
+merge_v3 <- as.data.frame(merge_v2) #168 264664
+save(
+  merge_v3, file = "../../Input_Output/RData/merge_final_168_MAF8%.RData")
+```
+
+
+```{r}
+#MAF 1%
+SNP_file_name = paste(base.dir, "/Input_Output/Samples_168/SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2.txt", sep="") 
+```
+
+```{r}
+#save MAF 10%
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore10%.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore10%.csv")
+
+#eQTL$cis$ntests
+#[1] 3440704
+#eQTL$trans$ntests
+#[1]  4354542669
+```
+
+
+```{r}
+#cis
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL$cis$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #58 11
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#58 18
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore10%_merge.csv")
+```
+
+
+```{r}
+#trans
+eQTL_trans_dist_1e6_merge <- merge(eQTL$trans$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) # 29  11
+eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#29 18
+write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore10%_merge.csv")
+```
+
+```{r}
+#updated merge_v3 for this analysis
+#GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/GE_mRNA_19309.txt", row.names=1)
+#GE_mRNA_19309_t <- t(GE_mRNA_19309)
+SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2.txt", row.names=1)
+SNP_after_filter_sort_t <- t(SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2)
+Covariates_NOVRFC_168_IS_sort <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/Covariates_NOVRFC_168_IS_sort.txt", row.names=1) #need sample as colnames
+Covariates_NOVRFC_168_IS_sort_t <- t(Covariates_NOVRFC_168_IS_sort)
+merge <-cbind(GE_mRNA_19309_t,SNP_after_filter_sort_t)
+merge_v2 <- cbind(merge,Covariates_NOVRFC_168_IS_sort_t)
+merge_v3 <- as.data.frame(merge_v2) #168 245016
+save(merge_v3, file = "../../Input_Output/RData/merge_final_168_MAF10%.RData")
+```
+
+```{r}
+fit <- lm(TC11000803.hg.1~`AX-11122201`+age+race+sex+diagnosissubtype+PC1+PC2+PC3+PC4+PC5+PC6+`AX-11122201`*sex, data = merge_v3)
+summary(fit)
+# lm(formula = TC11000803.hg.1 ~ `AX-11122201` + age + race + sex + 
+#     diagnosissubtype + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + `AX-11122201` * 
+#     sex, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.26366 -0.05649 -0.00298  0.05476  0.63080 
+# 
+# Coefficients:
+#                    Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)        3.305921   0.106785  30.959  < 2e-16 ***
+# `AX-11122201`      0.289286   0.048725   5.937 1.84e-08 ***
+# age               -0.000736   0.000698  -1.054 0.293318    
+# race               0.007556   0.007886   0.958 0.339506    
+# sex                0.496251   0.068069   7.290 1.48e-11 ***
+# diagnosissubtype  -0.003076   0.007136  -0.431 0.667056    
+# PC1                0.220824   0.127318   1.734 0.084831 .  
+# PC2                0.005990   0.128368   0.047 0.962843    
+# PC3               -0.097048   0.111596  -0.870 0.385843    
+# PC4               -0.401682   0.108906  -3.688 0.000312 ***
+# PC5                0.077409   0.110362   0.701 0.484100    
+# PC6               -0.107410   0.111492  -0.963 0.336853    
+# `AX-11122201`:sex -0.268439   0.037293  -7.198 2.47e-11 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1086 on 155 degrees of freedom
+# Multiple R-squared:  0.3326,	Adjusted R-squared:  0.281 
+# F-statistic: 6.438 on 12 and 155 DF,  p-value: 3.2e-09
+```
+
