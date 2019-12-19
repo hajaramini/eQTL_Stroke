@@ -592,3 +592,74 @@ summary(fit)
 # F-statistic: 6.438 on 12 and 155 DF,  p-value: 3.2e-09
 ```
 
+```{r}
+#without considering subdiagnosis
+covariates_file_name = paste(base.dir, "/Input_Output/Samples_168/Covariates_NOVRFC_168_IS_sort_NOSubdiagnosis.txt", sep="")
+```
+
+```{r}
+#save MAF 10%
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore10%.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore10%.csv")
+
+```
+
+
+```{r}
+#cis
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL$cis$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #58 11
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#58 18
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_subdiagnosis_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore10%_merge.csv")
+```
+
+```{r}
+#save MAF 8%
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore8%.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore8%.csv")
+
+```
+
+```{r}
+#cis
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore8%.csv")
+eQTL_cis_dist_1e6_merge <- merge(eQTL_cis_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #74 12
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#74 19
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore8%_merge.csv")
+```
+
+```{r}
+#trans
+eQTL_trans_dist_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore8%.csv")
+eQTL_trans_dist_1e6_merge <- merge(eQTL_trans_dist_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #74 12
+eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#74 19
+write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore8%_merge.csv")
+```
+
+```{r}
+#save MAF 5%
+#check for coding genes
+write.csv(eQTL$cis$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore5%.csv")
+write.csv(eQTL$trans$eqtls, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_1e6_MAFmore5%.csv")
+```
+
+```{r}
+#cis
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+#load("../Input_Output/RData/gene_expression_annotation_SNP_calls_small.RData")
+eQTL_cis_dist_1e6_merge <- merge(eQTL$cis$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #124 11
+eQTL_cis_dist_1e6_merge_v2 <- merge(eQTL_cis_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#124 18
+write.csv(eQTL_cis_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_cis_dist_1e6_MAFmore5%_merge.csv")
+```
+
+```{r}
+#trans
+eQTL_trans_dist_1e6_merge <- merge(eQTL$trans$eqtls,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #652 11
+eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#652 18
+write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore5%_merge.csv")
+```
