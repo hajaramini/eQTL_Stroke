@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #want to see the correlation between variables and three first pcs, I used this link to get corr between categorical and continuous variables "https://rpubs.com/juanhklopper/biserial_correlation"
 
 #For a dichotomous categorical variable and a continuous variable you can calculate a Pearson correlation if the categorical variable has a 0/1-coding for the categories. This correlation is then also known as a point-biserial correlation coefficient. But when you have more than two categories for the categorical variable the Pearson correlation is not appropriate anymore. You should then use eta-squared, or eta, as an effect-size measure for the relationship of a categorical variable and a continuous variable. 
+
 ```{r}
 load("../Input_Output/RData/merge_final.RData")
 SNP_PC1_PC2_PC3_Plink_v2 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/SNP_PC1_PC2_PC3_Plink_v2.txt", row.names=1)
@@ -61,17 +62,106 @@ cor$correlations
 # PC3                        -4.162922e-08  5.524897e-08  1.000000e+00
 ```
 
+
+```{r}
+#have cor matrix for the 275 samples for the covariates matrix
+merge_v3_small <- merge_v3[,c(294126:294137)]
+dim(merge_v3_small) #275 11
+colnames(merge_v3_small)
+cor <-hetcor(merge_v3_small, ML=FALSE)
+```
+
 ```{r}
 heatmap(cor$correlations)
 #library("reshape2")
-melt<-melt(cor$correlations)
 #library("ggplot2")
-G=ggplot(melt)
 G+geom_tile(aes(Var2,Var1,fill=value))
 rcm=round(cor$correlations,2) #Fancier with ggplot2
 meltrcm=melt(rcm)
 G=ggplot(meltrcm)
 G+geom_tile(aes(Var2,Var1,fill=value))+geom_text(aes(Var2,Var1,label=value))
+```
+
+```{r}
+load("../../Input_Output/RData/merge_final_275.RData")
+dim(merge_v3) # 275 294137
+merge_v3_small <- merge_v3[,c(294126:294136)] #275 12
+colnames(merge_v3_small) <- c("cause of stroke","sex","race","age","hypertension","diabetes","hypercholestrolemia","pc1","pc2","pc3","pc4")
+cor <-hetcor(merge_v3_small, ML=FALSE)
+```
+
+```{r}
+heatmap(cor$correlations)
+#library("reshape2")
+#library("ggplot2")
+G+geom_tile(aes(Var2,Var1,fill=value))
+rcm=round(cor$correlations,2) #Fancier with ggplot2
+meltrcm=melt(rcm)
+G=ggplot(meltrcm)
+x <- G+geom_tile(aes(Var2,Var1,fill=value))+geom_text(aes(Var2,Var1,label=value))
+
+```
+
+```{r}
+reorder_cormat <- function(cormat){
+# Use correlation between variables as distance
+dd <- as.dist((1-cormat)/2)
+hc <- hclust(dd)
+cormat <-cormat[hc$order, hc$order]
+}
+
+```
+
+```{r}
+cormat <- round(cor(merge_v3_small),2)
+cormat <- reorder_cormat(cormat)
+melted_cormat <- melt(cormat)
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile()
+```
+
+```{r}
+get_lower_tri<-function(cormat){
+    cormat[upper.tri(cormat)] <- NA
+    return(cormat)
+  }
+  # Get upper triangle of the correlation matrix
+  get_upper_tri <- function(cormat){
+    cormat[lower.tri(cormat)]<- NA
+    return(cormat)
+  }
+```
+
+```{r}
+upper_tri <- get_upper_tri(cormat)
+
+```
+
+```{r}
+# Melt the correlation matrix
+library(reshape2)
+melted_cormat <- melt(upper_tri, na.rm = TRUE)
+# Heatmap
+library(ggplot2)
+ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1))+
+ coord_fixed()
+```
+
+```{r}
+#use this webaite "http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization"
+reorder_cormat <- function(cormat){
+# Use correlation between variables as distance
+dd <- as.dist((1-cormat)/2)
+hc <- hclust(dd)
+cormat <-cormat[hc$order, hc$order]
+}
 ```
 
 
