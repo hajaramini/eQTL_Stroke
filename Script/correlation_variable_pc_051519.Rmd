@@ -69,10 +69,71 @@ merge_v3_small <- merge_v3[,c(294126:294137)]
 dim(merge_v3_small) #275 11
 colnames(merge_v3_small)
 cor <-hetcor(merge_v3_small, ML=FALSE)
+#                            diagnosissubtype       gender        race          age historyhypertension												
+# diagnosissubtype                1.000000000  0.139496260  0.08487380 -0.038008372         -0.10818514												
+# gender                          0.139496260  1.000000000  0.12027648  0.160118951          0.22427005												
+# race                            0.084873796  0.120276480  1.00000000 -0.077842522         -0.07830122												
+# age                            -0.038008372  0.160118951 -0.07784252  1.000000000          0.25969682												
+# historyhypertension            -0.108185143  0.224270049 -0.07830122  0.259696818          1.00000000												
+# historydiabetesmellitus        -0.077200894  0.089499197 -0.07947389 -0.086056124          0.12825872												
+# historyhypercholestrolemia     -0.003062698 -0.003742024  0.03975287  0.104851237          0.24794801												
+# pc1                            -0.079706907 -0.029434515 -0.48533334 -0.159889705          0.09270059												
+# pc2                            -0.004472388 -0.093231493 -0.31601957  0.042071567          0.03419468												
+# pc3                             0.166481547  0.066296602  0.48488074 -0.165082595          0.03945521												
+# pc4                            -0.027509796  0.110308808 -0.04550506  0.002660222          0.05096513												
+# diagnosis                       0.942484544  0.121595671  0.06788684 -0.016875745         -0.09790812												
+#                            historydiabetesmellitus historyhypercholestrolemia           pc1           pc2												
+# diagnosissubtype                     -0.0772008943               -0.003062698 -7.970691e-02 -4.472388e-03												
+# gender                                0.0894991969               -0.003742024 -2.943451e-02 -9.323149e-02												
+# race                                 -0.0794738870                0.039752873 -4.853333e-01 -3.160196e-01												
+# age                                  -0.0860561239                0.104851237 -1.598897e-01  4.207157e-02												
+# historyhypertension                   0.1282587171                0.247948010  9.270059e-02  3.419468e-02												
+# historydiabetesmellitus               1.0000000000                0.134669349  1.717686e-01 -4.144936e-04												
+# historyhypercholestrolemia            0.1346693495                1.000000000 -8.931343e-02  1.289256e-02												
+# pc1                                   0.1717685848               -0.089313427  1.000000e+00  6.636229e-08												
+# pc2                                  -0.0004144936                0.012892563  6.636229e-08  1.000000e+00												
+# pc3                                  -0.0086065098                0.001954866 -3.188667e-08 -2.221934e-08												
+# pc4                                  -0.0598025189               -0.047442034 -3.828227e-07  7.953805e-09												
+# diagnosis                            -0.1075758038               -0.018010402 -8.348625e-02  3.907250e-02												
+#                                      pc3           pc4     											
+# diagnosissubtype            1.664815e-01 -2.750980e-02  												
+# gender                      6.629660e-02  1.103088e-01  												
+# race                        4.848807e-01 -4.550506e-02  												
+# age                        -1.650826e-01  2.660222e-03 												
+# historyhypertension         3.945521e-02  5.096513e-02 												
+# historydiabetesmellitus    -8.606510e-03 -5.980252e-02 												
+# historyhypercholestrolemia  1.954866e-03 -4.744203e-02 												
+# pc1                        -3.188667e-08 -3.828227e-07 												
+# pc2                        -2.221934e-08  7.953805e-09  												
+# pc3                         1.000000e+00 -8.439381e-08  												
+# pc4                        -8.439381e-08  1.000000e+00  												
+# diagnosis                   1.383639e-01  6.445703e-04												
+
 ```
 
 ```{r}
-heatmap(cor$correlations)
+#have a upper and lower traingle heatmap with value
+#library("reshape2")
+#library("ggplot2")
+G+geom_tile(aes(Var2,Var1,fill=value))
+rcm=round(cor$correlations,2) #Fancier with ggplot2
+meltrcm=melt(rcm)
+G=ggplot(meltrcm)
+G+geom_tile(aes(Var2,Var1,fill=value))+geom_text(aes(Var2,Var1,label=value))
+
+```
+
+```{r}
+load("../../Input_Output/RData/merge_final_275.RData")
+dim(merge_v3) # 275 294137
+merge_v3_small <- merge_v3[,c(294126:294136)] #275 12
+colnames(merge_v3_small) <- c("diagnosis subtype","sex","race","age","hypertension","diabetes","hypercholestrolemia","pc1","pc2","pc3","pc4")
+cor <-hetcor(merge_v3_small, ML=FALSE)
+```
+
+```{r}
+#have a upper and lower traingle heatmap with no value
+#heatmap(cor$correlations)
 #library("reshape2")
 #library("ggplot2")
 G+geom_tile(aes(Var2,Var1,fill=value))
@@ -82,25 +143,7 @@ G=ggplot(meltrcm)
 G+geom_tile(aes(Var2,Var1,fill=value))+geom_text(aes(Var2,Var1,label=value))
 ```
 
-```{r}
-load("../../Input_Output/RData/merge_final_275.RData")
-dim(merge_v3) # 275 294137
-merge_v3_small <- merge_v3[,c(294126:294136)] #275 12
-colnames(merge_v3_small) <- c("cause of stroke","sex","race","age","hypertension","diabetes","hypercholestrolemia","pc1","pc2","pc3","pc4")
-cor <-hetcor(merge_v3_small, ML=FALSE)
-```
 
-```{r}
-heatmap(cor$correlations)
-#library("reshape2")
-#library("ggplot2")
-G+geom_tile(aes(Var2,Var1,fill=value))
-rcm=round(cor$correlations,2) #Fancier with ggplot2
-meltrcm=melt(rcm)
-G=ggplot(meltrcm)
-x <- G+geom_tile(aes(Var2,Var1,fill=value))+geom_text(aes(Var2,Var1,label=value))
-
-```
 
 ```{r}
 reorder_cormat <- function(cormat){
@@ -114,9 +157,9 @@ cormat <-cormat[hc$order, hc$order]
 
 ```{r}
 cormat <- round(cor(merge_v3_small),2)
-cormat <- reorder_cormat(cormat)
+cormat <- round(cor(merge_v3_small),2)^2
 melted_cormat <- melt(cormat)
-ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+ggplot(data = meltrcm, aes(x=Var1, y=Var2, fill=value)) + 
   geom_tile()
 ```
 
@@ -138,7 +181,7 @@ upper_tri <- get_upper_tri(cormat)
 ```
 
 ```{r}
-# Melt the correlation matrix
+# Melt the correlation matrix (R2)
 library(reshape2)
 melted_cormat <- melt(upper_tri, na.rm = TRUE)
 # Heatmap
@@ -146,22 +189,12 @@ library(ggplot2)
 ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
  geom_tile(color = "white")+
  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-   midpoint = 0, limit = c(-1,1), space = "Lab", 
-   name="Pearson\nCorrelation") +
+   midpoint = 0, limit = c(0,1), space = "Lab", 
+   name="R2") +
   theme_minimal()+ 
  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
     size = 12, hjust = 1))+
  coord_fixed()
-```
-
-```{r}
-#use this webaite "http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization"
-reorder_cormat <- function(cormat){
-# Use correlation between variables as distance
-dd <- as.dist((1-cormat)/2)
-hc <- hclust(dd)
-cormat <-cormat[hc$order, hc$order]
-}
 ```
 
 
