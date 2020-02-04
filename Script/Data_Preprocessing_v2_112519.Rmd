@@ -323,7 +323,7 @@ expression_file_name = paste(base.dir, "/Input_Output/Samples_168/GE_mRNA_19309.
 #Here we want to analyze eQTL on the 168 samples for only mRNA coding genes, with this model
 #y=α+β1(SNP)+β2(sex)+β3(age)+β4(race)+β5(diagnosis subtype)+β6(SNP ✕ sex)+error term.
 #running matrixeQTL from other script for:
-#SNP with MAF 0.05 277102
+#SNP with MAF 0.05 277102 Number of the SNP located on X chromosome 8158 (need this for checking over-representing of eQTL on X-chr)
 #gene 19309
 #covariate
 ```
@@ -504,8 +504,7 @@ SNP_after_filter_sort_t <- t(SNP_CRmore95_MAFmore0.1_HWEmore0.0000005_v2)
 merge <-cbind(GE_mRNA_19309_t,SNP_after_filter_sort_t)
 merge_v2 <- cbind(merge,Covariates_NOVRFC_168_IS_sort_t)
 merge_v3 <- as.data.frame(merge_v2) #168 264664
-save(
-  merge_v3, file = "../../Input_Output/RData/merge_final_168_MAF8%.RData")
+save(merge_v3, file = "../../Input_Output/RData/merge_final_168_MAF8%.RData")
 ```
 
 
@@ -663,3 +662,71 @@ eQTL_trans_dist_1e6_merge <- merge(eQTL$trans$eqtls,gene_expression_annotation_s
 eQTL_trans_dist_1e6_merge_v2 <- merge(eQTL_trans_dist_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#652 18
 write.csv(eQTL_trans_dist_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sample_168/covariate_sex_race_age_PC1-PC6/eQTL_trans_dist_1e6_MAFmore5%_merge.csv")
 ```
+
+
+```{r}
+#get alcohol and smoking status for 168 samples (IS samples from 351 samples)
+#CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels <- read.csv("C:/eQTL/Primary_Files/CTSC0218BloodGenomic-EQTL351_DATA_LABELS_2019-11-14_1007_labels.csv")
+
+CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19 <- read.csv("C:/eQTL/Primary_Files/CTSC0218BloodGenomic-EQTL351_DATA_LABELS_2019-11-14_1007_labels_11_25_19.csv") #1571   22
+GE_mRNA_19309 <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_168/GE_mRNA_19309.txt", header=T) # to have the 168 samples
+
+rownames(CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19) <- CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19$HospID
+
+CTSC0218BloodGenomic_168 <- CTSC0218BloodGenomic.EQTL351_DATA_LABELS_2019.11.14_1007_labels_11_25_19[colnames(GE_mRNA_19309[-1]),] #168 22
+#save
+write.table(CTSC0218BloodGenomic_168, file = "../../../Primary_Files/CTSC0218BloodGenomic_168.txt",col.names =T, sep = "\t")
+```
+
+```{r}
+#having figure for NRGN (sex-specific cis-eQTL)
+fit <- lm(TC11001143.hg.1~`AX-11378582`+age+race+sex+diagnosissubtype+PC1+PC2+PC3+PC4+PC5+PC6+`AX-11378582`*sex, data = x)
+summary (fit)
+# Call:
+# lm(formula = TC11001143.hg.1 ~ `AX-11378582` + age + race + sex + 
+#     diagnosissubtype + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + `AX-11378582` * 
+#     sex, data = merge_v3)
+# 
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -1.38816 -0.46337 -0.03513  0.37796  2.01690 
+# 
+# Coefficients:
+#                    Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)        7.075433   0.449994  15.723  < 2e-16 ***
+# `AX-11378582`     -1.464386   0.367359  -3.986 0.000103 ***
+# age                0.003902   0.004735   0.824 0.411166    
+# race               0.022922   0.053523   0.428 0.669050    
+# sex                0.038313   0.138457   0.277 0.782371    
+# diagnosissubtype   0.061109   0.048363   1.264 0.208306    
+# PC1                2.571471   1.122738   2.290 0.023358 *  
+# PC2                0.974445   0.810272   1.203 0.230972    
+# PC3                7.449835   3.900400   1.910 0.057990 .  
+# PC4                0.176465   0.743867   0.237 0.812796    
+# PC5                0.638981   0.799739   0.799 0.425529    
+# PC6                2.127451   0.925245   2.299 0.022830 *  
+# `AX-11378582`:sex  1.328249   0.269592   4.927 2.14e-06 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7374 on 154 degrees of freedom
+#   (1 observation deleted due to missingness)
+# Multiple R-squared:  0.2511,	Adjusted R-squared:  0.1928 
+# F-statistic: 4.304 on 12 and 154 DF,  p-value: 7.119e-06
+min(merge_v3$TC11001143.hg.1) #6.226972
+max(merge_v3$TC11001143.hg.1) #10.26011
+mean(merge_v3$TC11001143.hg.1) # 7.663934
+```
+
+```{r}
+x <-merge_v3[!is.na(merge_v3$'AX-11378582'), ] #remove samples with NA
+p1 <-ggplot(aes(y = x$TC11001143, x = as.factor(x$`AX-11378582`), fill = as.factor(x$sex)), data = x,  xlim(c(0,1,2))) + geom_boxplot()
+p2 <-p1 + labs(y="NRGN expression", x = "rs2248923 genotype", fill ="diagnosis")+scale_fill_discrete(name = "sex", labels = c("male", "female"))+scale_x_discrete(labels =c("0" = "AA", "1" = "AG", "2"="GG"))+scale_y_continuous(expression(paste( italic("NRGN")," " , "expression")))+expand_limits(y=c(4,12))
+
+
+ggsave(p2, file="../../Input_Output/Plot/Sample_168/NRGN_cis_eQTL.pdf",width = 10, height = 6)
+ggsave(p2, file="../../Input_Output/Plot/Sample_168/NRGN_cis_eQTL.jpg",width = 10, height = 6)
+```
+
+
+
