@@ -10511,6 +10511,47 @@ write.csv(eQTL$cis$eqtls,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Sampl
 eQTL_cis_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/eQTL_cis_1e6_pvalue1e-2.csv")
 eQTL_cis_1e6_merge <- merge(eQTL_cis_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #1807
 
-eQTL_cis_1e6_merge_v2 <- merge(eQTL_cis_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#20
-write.csv(eQTL_cis_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/SNPeQTL_cia_1e6_pvalue1e-2_merge.csv") 
+eQTL_cis_1e6_merge_v2 <- merge(eQTL_cis_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#1807
+write.csv(eQTL_cis_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/SNPeQTL_cis_1e6_pvalue1e-2_merge.csv") 
+```
+
+```{r}
+#3rd Try
+useModel =  modelLINEAR_CROSS
+
+cisDist = 1e6
+eQTL = Matrix_eQTL_main(
+snps = snps, 
+gene = gene, 
+cvrt = cvrt,
+output_file_name = output_file_name_tra,
+pvOutputThreshold = 1e-10,
+useModel = useModel, 
+errorCovariance = errorCovariance, 
+verbose = TRUE, 
+output_file_name.cis = output_file_name_cis,
+pvOutputThreshold.cis = 5e-02,
+snpspos = snpspos, 
+genepos = genepos,
+cisDist = cisDist,
+pvalue.hist = "qqplot",
+min.pv.by.genesnp = FALSE,
+noFDRsaveMemory = FALSE)
+
+unlink(output_file_name_tra);
+unlink(output_file_name_cis);
+```
+
+```{r}
+#save the result
+write.csv(eQTL$cis$eqtls,"../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/eQTL_cis_1e6_pvalue5e-2.csv")
+```
+
+```{r}
+#merge two dataframe to add more info. on the final result (eQTL_step*)
+eQTL_cis_1e6 <- read.csv("C:/eQTL/R_eQTL_Stroke/Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/eQTL_cis_1e6_pvalue5e-2.csv")
+eQTL_cis_1e6_merge <- merge(eQTL_cis_1e6,gene_expression_annotation_small,by ="gene", all.x = TRUE, sort =TRUE) #8893
+
+eQTL_cis_1e6_merge_v2 <- merge(eQTL_cis_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#8893
+write.csv(eQTL_cis_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/SNPeQTL_cis_1e6_pvalue5e-2_merge.csv") 
 ```
