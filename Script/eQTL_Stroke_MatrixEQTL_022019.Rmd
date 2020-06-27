@@ -25,6 +25,8 @@ base.dir <- ("C:/eQTL/R_eQTL_Stroke/")
 useModel = modelLINEAR_CROSS # modelANOVA or modelLINEAR or modelLINEAR_CROSS
 # Set parameter useModel = modelLINEAR_CROSS in the call of Matrix_eQTL_main to indicate that
 # Matrix eQTL should include the interaction of SNP and the last covariate in the model and test for its significance
+
+
 ```
 
 ```{r}

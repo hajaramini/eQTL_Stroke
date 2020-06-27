@@ -10555,3 +10555,56 @@ eQTL_cis_1e6_merge <- merge(eQTL_cis_1e6,gene_expression_annotation_small,by ="g
 eQTL_cis_1e6_merge_v2 <- merge(eQTL_cis_1e6_merge ,SNP_calls_small, by = "snps", all.x = TRUE, sort = TRUE)#8893
 write.csv(eQTL_cis_1e6_merge_v2, "../../Input_Output/eQTL_result/LINEAR_CROSS/mRNA/Samples_275/covariate_subdiagnosis_sex_race_age_diagnosis_pc/SNP_MatchWith32StrokeGWAS/SNPeQTL_cis_1e6_pvalue5e-2_merge.csv") 
 ```
+
+```{r}
+#check the Residual for model including more factors as reviewer 2 suggested for eQTL paper
+Covariate_Final_AlcoholAndSmoking <- read.delim("C:/eQTL/R_eQTL_Stroke/Input_Output/Samples_275/Covariate_Final_AlcoholAndSmoking.txt", row.names = 1, stringsAsFactors = FALSE)
+dim(Covariate_Final_AlcoholAndSmoking)
+Covariate_Final_AlcoholAndSmoking_t <-t(Covariate_Final_AlcoholAndSmoking)
+merge_final <-cbind(merge_v3,Covariate_Final_AlcoholAndSmoking_t)
+merge_final_v2 <- as.data.frame(merge_final)
+#save
+save(merge_final_v2, file = "../Input_Output/RData/merge_final_alcoholandsmoking_275.RData")
+#1st cis-eQTL
+fit <- lm(TC11001143.hg.1~`AX-29907155`+age+race+gender+diagnosis+diagnosissubtype+pc1+pc2+pc3+pc4+Alcohol+historyhypertension+historydiabetesmellitus+`AX-29907155`*diagnosis, data = merge_final_v2)
+summary(fit)
+#2nd cis-eQTL
+fit <- lm(TC04001305.hg.1~`AX-14758778`+age+race+gender+diagnosis+diagnosissubtype+pc1+pc2+pc3+pc4+Alcohol+historyhypertension+historydiabetesmellitus+`AX-14758778`*diagnosis, data = merge_final_v2)
+summary(fit)
+# Call:
+# lm(formula = TC04001305.hg.1 ~ `AX-14758778` + age + race + gender + 
+#     diagnosis + diagnosissubtype + pc1 + pc2 + pc3 + pc4 + Alcohol + 
+#     historyhypertension + historydiabetesmellitus + `AX-14758778` * 
+#     diagnosis, data = merge_final_v2)
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -1.9515 -0.3840 -0.0949  0.2862  6.5703 
+# 
+# Coefficients:
+#                          Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              4.323531   0.418249  10.337  < 2e-16 ***
+# `AX-14758778`            2.071246   0.277302   7.469 1.25e-12 ***
+# age                     -0.003343   0.003868  -0.864   0.3882    
+# race                     0.057432   0.055891   1.028   0.3051    
+# gender                   0.109924   0.101664   1.081   0.2806    
+# diagnosis                0.077125   0.096358   0.800   0.4242    
+# diagnosissubtype        -0.033681   0.054391  -0.619   0.5363    
+# pc1                     -1.625869   1.043239  -1.558   0.1203    
+# pc2                      1.267161   0.871942   1.453   0.1474    
+# pc3                     -1.494481   0.989187  -1.511   0.1321    
+# pc4                     -0.183938   0.782583  -0.235   0.8144    
+# Alcohol                 -0.006356   0.044844  -0.142   0.8874    
+# historyhypertension      0.156574   0.108284   1.446   0.1494    
+# historydiabetesmellitus -0.243105   0.117622  -2.067   0.0397 *  
+# `AX-14758778`:diagnosis -0.524013   0.094972  -5.518 8.36e-08 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.7664 on 258 degrees of freedom
+#   (2 observations deleted due to missingness)
+# Multiple R-squared:  0.2082,	Adjusted R-squared:  0.1652 
+F-statistic: 4.845 on 14 and 258 DF,  p-value: 6.179e-08
+
+```
+
